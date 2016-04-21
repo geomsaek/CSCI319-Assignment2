@@ -7,19 +7,12 @@ using namespace std;
 
 void InitChord(long int chordSize, long int ID, int size, nodeptr & chord){
 	
-	nodeptr tmp = new node;
-	tmp->next = NULL;
-	tmp->prev = NULL;
-	tmp->ID = ID;
-	tmp->resource[tmp->ID] = "";
-	tmp->fingertable = new long int[size];
-	
+	nodeptr tmp = createNode(ID, size);
 	for(int i = 0; i < size; i++){
 		tmp->fingertable[i] = tmp->ID;
 	}
 	
 	chord = tmp;
-	
 	cout << "Initialised CHORD" << endl;
 	cout << "CHORD size is " << chordSize << endl;
 	cout << "Starting node ID " << chord->ID << endl;
@@ -34,52 +27,68 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 	cout << "Add Peer " << ID << endl;
 	
 	bool greater = false;
-	nodeptr tmp = new node;
-	tmp->next = NULL;
-	tmp->prev = NULL;
-	tmp->ID = ID;
-	tmp->resource[tmp->ID] = "";
-	tmp->fingertable = new long int [size]; 
+	nodeptr tmp = createNode(ID, size);
 	
 	nodeptr cur = chord;
-	nodeptr store = NULL;
-	nodeptr pres;
+	nodeptr store = NULL, pres;
 	
 	if(chord == NULL){
 		chord = tmp;
 	}else {
-		while(cur->next != NULL){
+		if(cur->next != NULL){
+			while(cur->next != NULL){
+				if(cur->ID > ID){
+					greater = true;	
+					break;
+				}
+				cur = cur->next;
+			}
+
+			// last comparison
 			if(cur->ID > ID){
 				greater = true;	
-				break;
 			}
-			cur = cur->next;
-		}
-	
-		// last comparison
-		if(cur->ID > ID){
-			greater = true;	
-		}
+			
+			if(greater){
+		
+				store = cur->prev;
+				cur->prev = tmp;
+				tmp->prev = store;
+				store->next = tmp;
+				tmp->next = cur;
+				// store the new node
+				pres = store->next;
+			}else{
+				cur->next = tmp;
+				tmp->prev = cur;
+		
+				// store the new node
+				pres = cur->next;
+			}
+		}else {
 
-		if(greater){
-			store = cur->prev;
-			cur->prev = tmp;
-			tmp->prev = store;
-			store->next = tmp;
-			tmp->next = cur;
-		
-			// store the new node
-			pres = store->next;
-		}else{
-			cur->next = tmp;
-			tmp->prev = cur;
-		
-			// store the new node
-			pres = cur->next;
+			if(cur->ID > ID){
+
+				store = chord;
+				chord = tmp;
+			
+				chord->next = store;
+				chord->prev = NULL;
+				store->prev = chord;
+				store->next = NULL;
+				
+				pres = store;
+				
+			}else {
+				chord->next = tmp;
+				tmp->prev = chord;
+				
+				pres = chord->next;
+			}
 		}
 	
 	}
-	
+
 	fingerTable(pres, chord, ID, size);
 	
 	cout << "==========================================" << endl;
@@ -95,8 +104,9 @@ void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, long int size)
 	long int overflow = 0;
 	bool innerLoop = true, loop = true, find = false;
 	int fingerIndex = 0;
-	
+
 	while(loop){
+
 		for(int i = 0; i < size; i++){
 			forward = backwardCur;
 			fingerIndex = i + 1;
@@ -112,7 +122,7 @@ void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, long int size)
 						find = true;
 						break;
 					}
-				
+
 					if(forward->next == NULL){
 						innerLoop = false;
 						if(!find){
@@ -139,7 +149,7 @@ void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, long int size)
 		}
 		
 		if(backwardCur->prev == NULL){
-			loop = false;	
+			loop = false;
 		}else {
 			// go backward to reconfigure the node
 			backwardCur = backwardCur->prev;
@@ -192,9 +202,84 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 	cout << "==========================================" << endl;
 }
 
-void Insert(string stringID, long int n, struct node *& chordsys){
+// add the resource to the designated node
 
+void FindKey(string key, int n, nodeptr & chord, long int size) {
 
+	long int hashid = Hash(n, key);
+	nodeptr cur = chord;
+	long int store = 0;
+	bool loop = true, found = false, storeRes = false;
+	
+	cout << "hash id : " << hashid << endl;
+	
+	while(loop){
+		
+		if(cur->ID >= hashid){
+			store = cur->ID;
+			cur->resource.insert(pair<int, string>(store, key));
+			cout << "INSERTED " << key << " ( key=" << hashid << ") AT " << store << endl;
+			storeRes = true;
+			loop = false;
+		}else {
+			
+			for(int i = 0; i < size; i++){
+				cout << cur->fingertable[i] << endl;
+				if(cur->fingertable[i] >= hashid){
+					store = cur->fingertable[i];
+					found = true;
+					storeRes = false;
+					break;
+				}
+			}
+		}
+		
+		if(cur->next == NULL || found){
+			loop = false;
+		}else {
+			cur = cur->next;
+		}
+	}
+	
+	if(!storeRes){
+		//addResourcetoNode();
+	}
+	
+	cout << " FOUND: " << store << endl;
+	
+}
+
+void addResourcetoNode(string key, long int size, long int hashID, long int searchID, nodeptr & chord){
+
+	nodeptr cur = chord;
+	bool loop = true;
+	long int searchID = ID;
+	
+ 	while(loop){
+		if(cur->fingertable[i] == searchID){
+			cur->resource.insert(pair<int, string>(store, key));
+			cout << "INSERTED " << key << " ( key=" << searchID << ") AT " << store << endl;
+		}
+// 		
+		if(cur->next == NULL){
+			loop = false;
+		}else {
+			cur = cur->next;
+		}
+// 	}
+	
+}
+
+// create a new node
+nodeptr createNode(long int ID, long int size){
+
+	nodeptr tmp = new node;
+	tmp->next = NULL;
+	tmp->prev = NULL;
+	tmp->ID = ID;
+	tmp->fingertable = new long int[size];
+	
+	return tmp;
 	
 }
 
