@@ -12,41 +12,27 @@ int main(){
 	int n = 5;
 	int size = 	pow(n);
 	
-	InitChord(size, n, chord);
-	AddPeer(1, n, chord);
+	
+	// fix if you remove 0 right at start and then add a peer
+	// fix issue of making 0 as the first peer. number should be arbitrary
+	InitChord(size, 1, n, chord);
+
+//	AddPeer(1, n, chord);
 	AddPeer(4, n, chord);
-	//RemovePeer(5, n, chord);
-	AddPeer(9, n, chord);
-	AddPeer(11, n, chord);
-	AddPeer(14, n, chord);
-	AddPeer(18, n, chord);
-	AddPeer(20, n, chord);
-	AddPeer(21, n, chord);
-	AddPeer(28, n, chord);
+ 	AddPeer(9, n, chord);
+
+ 	AddPeer(11, n, chord);
+//	RemovePeer(9, n, chord);
+// 	AddPeer(14, n, chord);
+// 	AddPeer(18, n, chord);
+// 	AddPeer(20, n, chord);
+// 	AddPeer(21, n, chord);
+// 	AddPeer(28, n, chord);
+// 	
 	
-	
-	
-	
-	nodeptr cur = chord;
-	
-	while(cur->next != NULL){
-	cout << "**************** CUR ID: " << cur->ID << "****************" << endl;
-	cout << "=========================================================" << endl;
-		for(int i = 0; i < n; i++){		
-			cout<< "[ " << i + 1 << " ] [ " << cur->fingertable[i] << " ] " << endl;
-		}
-		
-		cout << "=========================================================" << endl;
-		cur = cur->next;
-	}
-			cout << "=========================================================" << endl;
-	cout << "**************** CUR ID: " << cur->ID << "****************" << endl;
-		for(int i = 0; i < n; i++){		
-			cout<< "[ " << i + 1 << " ] [ " << cur->fingertable[i] << " ] " << endl;
-		}
-cout << "=========================================================" << endl;
-		
-		
+	outputChord(chord, n);
+
+
 	/*
 	int activeNodeCount = 0;
 	

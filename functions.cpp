@@ -5,12 +5,12 @@ using namespace std;
 
 // initialise the CHORD structure
 
-void InitChord(long int chordSize, int size, nodeptr & chord){
+void InitChord(long int chordSize, long int ID, int size, nodeptr & chord){
 	
 	nodeptr tmp = new node;
 	tmp->next = NULL;
 	tmp->prev = NULL;
-	tmp->ID = 0;
+	tmp->ID = ID;
 	tmp->resource[tmp->ID] = "";
 	tmp->fingertable = new long int[size];
 	
@@ -22,8 +22,9 @@ void InitChord(long int chordSize, int size, nodeptr & chord){
 	
 	cout << "Initialised CHORD" << endl;
 	cout << "CHORD size is " << chordSize << endl;
+	cout << "Starting node ID " << chord->ID << endl;
 	
-	fingerTable(chord, chord, 0, size);
+	fingerTable(chord, chord, ID, size);
 }
 
 // add a peer to the network
@@ -44,78 +45,94 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 	nodeptr store = NULL;
 	nodeptr pres;
 	
-	while(cur->next != NULL){
+	if(chord == NULL){
+		chord = tmp;
+	}else {
+		while(cur->next != NULL){
+			if(cur->ID > ID){
+				greater = true;	
+				break;
+			}
+			cur = cur->next;
+		}
+	
+		// last comparison
 		if(cur->ID > ID){
 			greater = true;	
-			break;
 		}
-		cur = cur->next;
-	}
-	
-	// last comparison
-	if(cur->ID > ID){
-		greater = true;	
-	}
 
-	if(greater){
-		store = cur->prev;
-		cur->prev = tmp;
-		tmp->prev = store;
-		store->next = tmp;
-		tmp->next = cur;
+		if(greater){
+			store = cur->prev;
+			cur->prev = tmp;
+			tmp->prev = store;
+			store->next = tmp;
+			tmp->next = cur;
 		
-		pres = store->next;
-	}else{
-		cur->next = tmp;
-		tmp->prev = cur;
+			// store the new node
+			pres = store->next;
+		}else{
+			cur->next = tmp;
+			tmp->prev = cur;
 		
-		pres = cur->next;
-	}
+			// store the new node
+			pres = cur->next;
+		}
 	
+	}
 	
 	fingerTable(pres, chord, ID, size);
 	
-	//cout << "==========================================" << endl;
+	cout << "==========================================" << endl;
 }
 
 // populate the finger table for the current node
 
 void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, long int size){
-	
-	nodeptr backwardCur = curNode, forward;	
+
+	nodeptr backwardCur = curNode, forward, start;
 	long int curPeerID;
+	long int chordsize = pow(size);
+	long int overflow = 0;
 	bool innerLoop = true, loop = true, find = false;
-	int count = 0, fingerIndex = 0;
+	int fingerIndex = 0;
 	
 	while(loop){
-	
 		for(int i = 0; i < size; i++){
-
-			// assign a current pointer to the current node
 			forward = backwardCur;
-			
-			// succ(p + 2 ^ (i-1))
 			fingerIndex = i + 1;
 			fingerIndex = fingerIndex - 1;
 			fingerIndex = pow(fingerIndex);
 			fingerIndex = fingerIndex + forward->ID;
 			
-			while(innerLoop){
+			if(fingerIndex < chordsize){
+				while(innerLoop){
 
-				if(forward->ID >= fingerIndex){
-					backwardCur->fingertable[i] = forward->ID;
-					find = true;
-					break;
+					if(forward->ID >= fingerIndex){
+						backwardCur->fingertable[i] = forward->ID;
+						find = true;
+						break;
+					}
+				
+					if(forward->next == NULL){
+						innerLoop = false;
+						if(!find){
+							backwardCur->fingertable[i] = chord->ID;
+						}
+					}else {
+						forward = forward->next;
+					}
+				}
+			}else {
+				overflow = fingerIndex - chordsize;
+				start = chord;
+				while(start->next != NULL){
+					if(start->ID >= overflow){
+						backwardCur->fingertable[i] = start->ID;
+						break;
+					}
+					start = start->next;
 				}
 				
-				if(forward->next == NULL){
-					innerLoop = false;
-					if(!find){
-						backwardCur->fingertable[i] = chord->ID;
-					}
-				}else {
-					forward = forward->next;
-				}
 			}
 			innerLoop = true;
 			find = false;
@@ -130,118 +147,49 @@ void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, long int size)
 	}
 }
 
-
-
-long int checkNode(nodeptr & chord){
-
-	nodeptr cur = chord;
-	long int ID = cur->ID;
-	long int finger = -1;
-	bool found = false;
-	
-	while(cur->next != NULL){
-		
-		if(cur->ID >= ID){
-			finger = cur->ID;
-			found = true;
-			break;		
-		}
-		cur = cur->next;
-	}
-	if(!found){
-		if(cur->ID >= ID){
-			finger = cur->ID;
-		}
-	}
-	
-	return finger;
-	
-}
-
-void setTableVals(nodeptr & chord){
-
-//	nodeptr 
-	
-	
-}
-
+// remove peer function
 void RemovePeer(long int ID, long int size, nodeptr & chord){
-
 	cout << "Removed Peer " << ID << endl;
-	
 	nodeptr cur = chord;
 	nodeptr store;
 	nodeptr storeBack;
 	bool found = false;
 	
 	if(cur->next == NULL){
-		delete cur;
-		cur = NULL;
+		delete chord;
+		chord = NULL;
 	}else {
-	
-		// if the first node is removed
-		
-		if(cur->ID == ID){
-			store = cur->next;
-			delete cur;
-			store->prev = NULL;
-			chord = store;
-		}else {
-		
-			// if another node is removed
-			while(cur->next != NULL){
-				if(cur->ID == ID){
-					store = cur;
-					found = true;
-					break;
-				}
-				cur = cur->next;	
+			
+		// if another node is removed
+		while(cur->next != NULL){
+			if(cur->ID == ID){
+				store = cur;
+				found = true;
+				break;
 			}
-
-			// if the last node is removed
-			if(!found){
-				if(cur->ID == ID){
-					store = cur;
-					found = true;
-				}
-			}
+			cur = cur->next;	
 		}
 		
+		// if the node is found within the list
 		if(found){
 			store = cur->next;
 			storeBack = cur->prev;
 			delete cur;
 			store->prev = storeBack;
 			storeBack->next = store;
+			
+			fingerTable(storeBack, chord, ID, size);
+		}else {
+			// the last node
+			store = cur->prev;
+			store->next = NULL;
+			delete cur;
+			
+			fingerTable(store, chord, ID, size);
 		}
 	}
 	
 	cout << "==========================================" << endl;
-}
-
-long int findsuccessor(long int ID, nodeptr & chord){
-	
-	nodeptr cur = chord;
-	
-	while(cur->next != NULL){
-		
-
-		cur = cur->next;
-	}
-
-	
-}
-
-
-
-void outputNodes(long int n, struct node *& chordsys){
-
-	
-	
-}
-
-void checkPrevNodes(long int ID, long int n, struct node *& chordsys){
-	
 }
 
 void Insert(string stringID, long int n, struct node *& chordsys){
@@ -252,9 +200,9 @@ void Insert(string stringID, long int n, struct node *& chordsys){
 
 // power of function
 
-int pow(int n){
+long int pow(int n){
 
-	int size = n;
+	long int size = n;
 	long result;	
 	result = 1 << size;
 	
@@ -283,4 +231,28 @@ unsigned int Hash (long int n, string datastring) {
 	}
 	
 	return key;
+}
+
+void outputChord(nodeptr & chord, long int n){
+	
+	nodeptr cur = chord;
+
+	cout << "=========================================================" << endl;	
+	while(cur->next != NULL){
+
+	cout << "**************** CUR ID: " << cur->ID << " ****************" << endl;
+	cout << "=========================================================" << endl;
+		for(int i = 0; i < n; i++){		
+			cout<< "[ " << i + 1 << " ] [ " << cur->fingertable[i] << " ] " << endl;
+		}
+		
+		cout << "=========================================================" << endl;
+		cur = cur->next;
+	}
+			cout << "=========================================================" << endl;
+	cout << "**************** CUR ID: " << cur->ID << "****************" << endl;
+		for(int i = 0; i < n; i++){		
+			cout<< "[ " << i + 1 << " ] [ " << cur->fingertable[i] << " ] " << endl;
+		}
+	cout << "=========================================================" << endl;
 }
