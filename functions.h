@@ -29,8 +29,8 @@ void InitChord(long int chordSize, long int ID, int size, nodeptr & chord);
 void AddPeer(long int ID, long int n, nodeptr & chordsys);
 void RemovePeer(long int ID, long int size, nodeptr & chord);
 
-void FindKey(string key, int n, nodeptr & chord, long int size);
-void addResourcetoNode(string key, long int hashid, long int searchID, nodeptr & chord);
+void Insert(string key, int n, nodeptr & chord, long int size);
+long int FindKey(long int hashid, long int size, nodeptr & chord);
 
 unsigned int Hash (long int n, string dataitem);
 
@@ -38,6 +38,7 @@ unsigned int Hash (long int n, string dataitem);
 // additional functions
 
 long int pow(int);
+bool check_resource(nodeptr & chord, long int hashid);
 
 template <typename T> string convertToString(T val);
 

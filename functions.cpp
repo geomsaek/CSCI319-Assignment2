@@ -136,8 +136,77 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 	}
 
 	fingerTable(pres, chord, ID, size);
+	moveResource(pres, chord, ID, size);
 	cout << endl;
 
+}
+
+// remove peer function
+void RemovePeer(long int ID, long int size, nodeptr & chord){
+
+	cout << "PEER " << ID << " REMOVED" << endl;
+	nodeptr cur = chord;
+	nodeptr store;
+	nodeptr storeBack;
+	bool found = false;
+	
+	long int storeID = chord->ID;
+	
+	if(cur->next == NULL){
+		delete chord;
+		chord = NULL;
+	}else {
+			
+		// if another node is removed
+		while(cur->next != NULL){
+			if(storeID >= cur->ID){
+
+				if(cur->ID == ID){
+					store = cur;
+					found = true;
+					if(cur->next != NULL){
+						cout << cur->next->ID << ">" << cur->next->fingertable[0];
+					}
+					break;
+				}else {
+					for(int i = 0; i < size; i++){
+						if(cur->fingertable[i] >= ID){
+							storeID = cur->fingertable[i];
+						}
+					}
+					cout << cur->ID << ">";
+				}
+			}
+			cur = cur->next;	
+		}
+		
+		// if the node is found within the list
+		if(found){
+			store = cur->next;
+			storeBack = cur->prev;
+			delete cur;
+			store->prev = storeBack;
+			storeBack->next = store;
+			
+			fingerTable(storeBack, chord, ID, size);
+		}else {
+			// the last node
+			store = cur->prev;
+			cout << store->ID;
+			store->next = NULL;
+			delete cur;
+			
+			fingerTable(store, chord, ID, size);
+		}
+	}
+	cout << endl;
+
+}
+
+void moveResource(nodeptr & cur, nodeptr & chord, long int ID, long int size){
+	
+	
+	
 }
 
 // populate the finger table for the current node
@@ -203,107 +272,81 @@ void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, long int size)
 	}
 }
 
-// remove peer function
-void RemovePeer(long int ID, long int size, nodeptr & chord){
-
-	cout << "PEER " << ID << " REMOVED" << endl;
-	nodeptr cur = chord;
-	nodeptr store;
-	nodeptr storeBack;
-	bool found = false;
-	
-	if(cur->next == NULL){
-		delete chord;
-		chord = NULL;
-	}else {
-			
-		// if another node is removed
-		while(cur->next != NULL){
-			if(cur->ID == ID){
-				store = cur;
-				found = true;
-				break;
-			}
-			cur = cur->next;	
-		}
-		
-		// if the node is found within the list
-		if(found){
-			store = cur->next;
-			storeBack = cur->prev;
-			delete cur;
-			store->prev = storeBack;
-			storeBack->next = store;
-			
-			fingerTable(storeBack, chord, ID, size);
-		}else {
-			// the last node
-			store = cur->prev;
-			store->next = NULL;
-			delete cur;
-			
-			fingerTable(store, chord, ID, size);
-		}
-	}
-
-}
-
 // add the resource to the designated node
 
-void FindKey(string key, int n, nodeptr & chord, long int size) {
+void Insert(string key, int n, nodeptr & chord, long int size) {
 
 	long int hashid = Hash(n, key);
 	nodeptr cur = chord;
-	long int store = 0;
+	long int store = chord->ID;
 	bool loop = true, found = false, storeRes = false;
+	
+	string path;
+	int count = 0;
 	
 	while(loop){
 		
-		if(cur->ID >= hashid){
-			store = cur->ID;
-			cur->resource.insert(pair<int, string>(store, key));
-			cout << "INSERTED " << key << " (key=" << hashid << ") AT " << store << endl;
-			storeRes = true;
-			loop = false;
-		}else {
+		if(store >= cur->ID){
+			if(count == 0){
+				path = convertToString(cur->ID);
+			}else {
+				path = path + ">" + convertToString(cur->ID);
+			}
+
+			if(cur->ID >= hashid){
+
+				store = cur->ID;
+				cur->resource.insert(pair<int, string>(hashid, key));
+				cout << "INSERTED " << key << " (key=" << hashid << ") AT " << store << endl;
+				storeRes = true;
+				loop = false;
+				found = true;
+			}else {
 			
-			for(int i = 0; i < size; i++){
-				if(cur->fingertable[i] >= hashid){
-					store = cur->fingertable[i];
-					found = true;
-					storeRes = false;
-					break;
+				for(int i = 0; i < size; i++){
+					if(cur->fingertable[i] >= hashid){
+						store = cur->fingertable[i];
+						found = true;
+						storeRes = false;
+						break;
+					}
 				}
 			}
 		}
 		
-		if(cur->next == NULL || found){
+		if(cur->next == NULL){
 			loop = false;
 		}else {
 			cur = cur->next;
 		}
+		count = 1;
 	}
-	
-	if(!storeRes){
-		addResourcetoNode(key, hashid, store, chord);
+
+	if(!found){
+		chord->resource.insert(pair<int, string>(hashid, key));
+		cout << "INSERTED " << key << " (key=" << hashid << ") AT " << chord->ID << endl;
 	}
+	cout << path <<endl;
 	
 }
 
-void addResourcetoNode(string key, long int hashid, long int searchID, nodeptr & chord){
 
-	nodeptr cur = chord;
+// find key function
+long int FindKey(long int hashid, long int size, nodeptr & chord){
+
 	bool loop = true;
 	bool found = false;
+	nodeptr cur = chord;
+	long int storeID = cur->ID;
 	
- 	while(loop){
-
-		if(cur->ID == searchID){
-			cur->resource.insert(pair<int, string>(hashid, key));
-			cout << "INSERTED " << key << " (key=" << hashid << ") AT " << searchID << endl;
-			found = true;
+	while(loop){
+					
+		found = check_resource(cur, hashid);
+		if(found){
+			storeID = cur->ID;
+			break;		
 		}
-
+		
 		if(cur->next == NULL){
 			loop = false;
 		}else {
@@ -311,10 +354,25 @@ void addResourcetoNode(string key, long int hashid, long int searchID, nodeptr &
 		}
 	}
 	
-	if(!found){
-		chord->resource.insert(pair<int, string>(hashid, key));
-		cout << "INSERTED " << key << " (key=" << hashid << ") AT " << chord->ID << endl;
+	return storeID;
+}
+
+// check the current node for the resource
+bool check_resource(nodeptr & chord, long int hashid){
+
+	nodeptr cur = chord;
+	bool found = false;
+	
+	std::multimap<int,string>::iterator it;
+	
+	for (it=cur->resource.begin(); it!=cur->resource.end(); ++it){
+		if((*it).first == hashid){
+//		    std::cout << (*it).first << " => " << (*it).second << '\n';
+		    found = true;
+		}
 	}
+    
+    return found;
 }
 
 // create a new node

@@ -49,18 +49,24 @@ int main(){
 	AddPeer(12, n, chord);
 //	outputChord(chord, n);
 	AddPeer(3, n, chord);
+	
 //	outputChord(chord, n);	
 	AddPeer(9, n, chord);
 //	outputChord(chord, n);
 	RemovePeer(3, n, chord);
 //	outputChord(chord, n);
 	AddPeer(17, n, chord);
-//	outputChord(chord, n);	
+	outputChord(chord, n);	
 
 
-	FindKey("THIS IS A TEST", n, chord, n);
-	FindKey("Markus Hagenbuchner", n, chord, n);
-	FindKey("CSCI319", n, chord, n);
+	Insert("THIS IS A TEST", n, chord, n);
+	Insert("Markus Hagenbuchner", n, chord, n);
+	Insert("CSCI319", n, chord, n);
+	
+	long int hashid = Hash(n, "THIS IS A TEST");
+	
+	long int temp = FindKey(hashid, n, chord);
+	cout << "PEER ID: " << temp << endl;
 		
 	/*
 	unsigned int temp;
