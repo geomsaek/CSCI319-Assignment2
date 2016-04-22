@@ -38,6 +38,7 @@ int main(){
 	
 // fix duplicate peer entry
 	InitChord(size, 0, n, chord);
+//	InitChord(size, 1, n, chord);
 //	outputChord(chord, n);
 	AddPeer(7, n, chord);
 //	outputChord(chord, n);
@@ -61,7 +62,8 @@ int main(){
 	Insert("Markus Hagenbuchner", n, chord, n);
 	Insert("CSCI319", n, chord, n);
 	
-//	Delete("THIS IS A TEST", n, chord);
+	Print("THIS IS A TEST", n, chord);
+	Delete("THIS IS A TEST", n, chord);
 	Print("THIS IS A TEST", n, chord);
 //	outputChord(chord, n);
 

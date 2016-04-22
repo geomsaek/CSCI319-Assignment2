@@ -45,6 +45,8 @@ void moveDeletedResource(nodeptr & cur, nodeptr & chord, long int ID, bool addPe
 void outputResources(nodeptr & cur);
 void returnPeer(nodeptr & positionPointer, nodeptr & chord, long int ID);
 void checkAddedPeers(nodeptr & newNode, nodeptr & chord);
+void findnodeInfo(long int ID, nodeptr & pos, nodeptr & chord);
+void reinitialise(nodeptr & chord, long int chordSize, long int ID, int size);
 
 template <typename T> string convertToString(T val);
 

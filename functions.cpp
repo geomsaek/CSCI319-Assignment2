@@ -19,19 +19,45 @@ using namespace std;
 
 void InitChord(long int chordSize, long int ID, int size, nodeptr & chord){
 	
-	nodeptr tmp = createNode(ID, size);
-	string path;
-	for(int i = 0; i < size; i++){
-		tmp->fingertable[i] = tmp->ID;
+	if(chord != NULL){
+		cout << "RES" << endl;
+		reinitialise(chord, chordSize, ID, size);
+		cout << "back" << endl;
+	}else {
+		nodeptr tmp = createNode(ID, size);
+		string path;
+		for(int i = 0; i < size; i++){
+			tmp->fingertable[i] = tmp->ID;
+		}
+	
+		chord = tmp;
+		cout << "Matthew Saliba" << endl;
+		cout << "3284165" << endl;
+		path = convertToString(chord->ID);
+		cout << path << ">" << path << endl;
+	
+		fingerTable(chord, chord, ID, size);
 	}
+}
+
+void reinitialise(nodeptr & chord, long int chordSize, long int ID, int size){
 	
-	chord = tmp;
-	cout << "Matthew Saliba" << endl;
-	cout << "3284165" << endl;
-	path = convertToString(chord->ID);
-	cout << path << ">" << path << endl;
+	nodeptr temp;
+		
+		while(chord->next != NULL){
+		
+			temp = chord;
+			chord = chord->next;
+			delete temp;
+		}	
+		delete chord;
+		
+		chord = NULL;
+		
+		InitChord(chordSize, ID, size, chord);
+
+
 	
-	fingerTable(chord, chord, ID, size);
 }
 
 // add a peer to the network
@@ -54,11 +80,11 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 		chord = tmp;
 		cout << path << ">" << path << endl;
 	}else {
+
 		if(cur->next != NULL){
 			
 			path = convertToString(chord->ID);
-			while(cur->next != NULL){
-				
+			while(cur->next != NULL){				
 
 				if(!ignore){
 
@@ -90,15 +116,31 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 			
 			if(greater){
 				
-				store = cur->prev;
-				cur->prev = tmp;
-				tmp->prev = store;
-				store->next = tmp;
-				tmp->next = cur;
+				// if the greater node is after the starting node
+				//if(cur->prev != NULL){
 
-				pres = store->next;
+					store = cur->prev;
+					cur->prev = tmp;
+					tmp->prev = store;
+					store->next = tmp;
+					tmp->next = cur;
+ 
+					pres = store->next;
 
-				cout << ">" << tmp->ID;
+					cout << ">" << tmp->ID;
+				/*}else {
+					// if the new node is to be at the start
+					store = cur;
+
+					cur = tmp;
+					cout << "CUR...: " << cur->ID << endl;
+					cur->next = store;
+
+					store->prev = cur;
+					cout << "tUR...: " << store->prev->ID << endl;					
+					pres = cur;
+					cout << cur->ID << ">" << store->ID;
+				}*/
 				
 			}else{
 				cur->next = tmp;
@@ -281,26 +323,59 @@ void Delete(string hash, long int n, nodeptr & chord){
 void Print(string key, long int n, nodeptr & chord){
 	
 	long int nodeID = FindKey(key, n, chord);
+	long int hashid;
+	nodeptr cur = chord;
+	nodeptr pos;
 	
 	if(nodeID != -1){
-		nodeptr cur = chord;
-		nodeptr pos;
-		cout << "NODE: " << nodeID << endl;
 		returnPeer(pos, chord, nodeID);
+	}else {
+
+		hashid = Hash(n,key);
+		findnodeInfo(hashid, pos, chord);
+		nodeID = pos->ID;
 	
-		cout << "DATA AT NODE " << nodeID << ":" << endl;
-		if(pos->ID != nodeID){
-			cout << "NO DATA AVAILABLE" << endl;
-		}else {
-			outputResources(pos);
-		}
-		cout << "FINGER TABLE OF NODE " << nodeID << endl;
-	
-		for(int i = 0; i < n; i++){
-			cout << pos->fingertable[i] << " ";
-		}
-		cout << endl;
 	}
+
+	cout << "NODE: " << nodeID << endl;
+	cout << "DATA AT NODE " << nodeID << ":" << endl;
+	outputResources(pos);
+	cout << "FINGER TABLE OF NODE " << nodeID << endl;
+
+	for(int i = 0; i < n; i++){
+		cout << pos->fingertable[i] << " ";
+	}
+	cout << endl;
+}
+
+void findnodeInfo(long int ID, nodeptr & pos, nodeptr & chord){
+	
+	bool loop = true;
+	nodeptr cur = chord;
+
+	while(loop){
+		
+		if(cur->ID >= ID){
+			if(cur->next != NULL){
+				if(cur->next->ID >= ID){
+					pos = cur;
+					break;
+				}
+			}else {
+				pos = cur;
+				break;
+			}
+		}
+		
+		
+		if(cur->next == NULL){
+			loop = false;
+		}else {
+			cur = cur->next;
+		}
+	}
+	
+	
 }
 
 // move a deleted resource
