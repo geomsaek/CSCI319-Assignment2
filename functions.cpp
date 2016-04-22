@@ -1,5 +1,17 @@
+/*
+
+	Name:			Matthew Saliba
+	Student#:		3284165
+	Subject:		CSCI319
+	Desc:			Assignment 2: Function implementations
+	Date:
+
+*/
+
 #include<iostream>
 #include<map>
+#include<string>
+#include<sstream>
 #include "functions.h"
 using namespace std;
 
@@ -8,14 +20,16 @@ using namespace std;
 void InitChord(long int chordSize, long int ID, int size, nodeptr & chord){
 	
 	nodeptr tmp = createNode(ID, size);
+	string path;
 	for(int i = 0; i < size; i++){
 		tmp->fingertable[i] = tmp->ID;
 	}
 	
 	chord = tmp;
-	cout << "Initialised CHORD" << endl;
-	cout << "CHORD size is " << chordSize << endl;
-	cout << "Starting node ID " << chord->ID << endl;
+	cout << "Matthew Saliba" << endl;
+	cout << "3284165" << endl;
+	path = convertToString(chord->ID);
+	cout << path << ">" << path << endl;
 	
 	fingerTable(chord, chord, ID, size);
 }
@@ -24,24 +38,46 @@ void InitChord(long int chordSize, long int ID, int size, nodeptr & chord){
 
 void AddPeer(long int ID, long int size, nodeptr & chord){
 	
-	cout << "Add Peer " << ID << endl;
-	
 	bool greater = false;
+	bool initial = false;
+	
+	
+	int counter = 0;
 	nodeptr tmp = createNode(ID, size);
+	string path;
 	
 	nodeptr cur = chord;
 	nodeptr store = NULL, pres;
+	long int prev = 0;
+	
+	cout << "PEER " << ID << " ADDED" << endl;
 	
 	if(chord == NULL){
+		path = convertToString(chord->ID);
 		chord = tmp;
+		cout << path << ">" << path << endl;
 	}else {
 		if(cur->next != NULL){
+			
+			path = convertToString(chord->ID);
 			while(cur->next != NULL){
+
+
+				if(!initial){
+					prev = cur->fingertable[0];
+					cout << "PREV: " << prev << endl;
+					initial = true;
+// 					if(cur->fingertable[0] >= ID && counter > 0){
+// 						cout << ">" << cur->ID;
+// 					}
+				}
+				
 				if(cur->ID > ID){
 					greater = true;	
 					break;
 				}
 				cur = cur->next;
+				counter = 1;
 			}
 
 			// last comparison
@@ -50,20 +86,24 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 			}
 			
 			if(greater){
-		
+				
 				store = cur->prev;
 				cur->prev = tmp;
 				tmp->prev = store;
 				store->next = tmp;
 				tmp->next = cur;
-				// store the new node
+
 				pres = store->next;
+
+				cout << ">" << tmp->ID;
+				
 			}else{
 				cur->next = tmp;
 				tmp->prev = cur;
-		
+				
 				// store the new node
 				pres = cur->next;
+				cout << ">" << cur->ID << ">" << pres->ID;
 			}
 		}else {
 
@@ -79,19 +119,22 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 				
 				pres = store;
 				
+				cout << ">" << chord->ID << ">" << chord->next->ID;
+				
 			}else {
 				chord->next = tmp;
 				tmp->prev = chord;
 				
 				pres = chord->next;
+				cout << chord->ID << ">" << pres->ID;
 			}
 		}
 	
 	}
 
 	fingerTable(pres, chord, ID, size);
-	
-	cout << "==========================================" << endl;
+	cout << endl;
+
 }
 
 // populate the finger table for the current node
@@ -159,7 +202,8 @@ void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, long int size)
 
 // remove peer function
 void RemovePeer(long int ID, long int size, nodeptr & chord){
-	cout << "Removed Peer " << ID << endl;
+
+	cout << "PEER " << ID << " REMOVED" << endl;
 	nodeptr cur = chord;
 	nodeptr store;
 	nodeptr storeBack;
@@ -198,8 +242,7 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 			fingerTable(store, chord, ID, size);
 		}
 	}
-	
-	cout << "==========================================" << endl;
+
 }
 
 // add the resource to the designated node
@@ -211,20 +254,17 @@ void FindKey(string key, int n, nodeptr & chord, long int size) {
 	long int store = 0;
 	bool loop = true, found = false, storeRes = false;
 	
-	cout << "hash id : " << hashid << endl;
-	
 	while(loop){
 		
 		if(cur->ID >= hashid){
 			store = cur->ID;
 			cur->resource.insert(pair<int, string>(store, key));
-			cout << "INSERTED " << key << " ( key=" << hashid << ") AT " << store << endl;
+			cout << "INSERTED " << key << " (key=" << hashid << ") AT " << store << endl;
 			storeRes = true;
 			loop = false;
 		}else {
 			
 			for(int i = 0; i < size; i++){
-				cout << cur->fingertable[i] << endl;
 				if(cur->fingertable[i] >= hashid){
 					store = cur->fingertable[i];
 					found = true;
@@ -242,32 +282,36 @@ void FindKey(string key, int n, nodeptr & chord, long int size) {
 	}
 	
 	if(!storeRes){
-		//addResourcetoNode();
+		addResourcetoNode(key, hashid, store, chord);
 	}
-	
-	cout << " FOUND: " << store << endl;
 	
 }
 
-void addResourcetoNode(string key, long int size, long int hashID, long int searchID, nodeptr & chord){
+void addResourcetoNode(string key, long int hashid, long int searchID, nodeptr & chord){
 
 	nodeptr cur = chord;
 	bool loop = true;
-	long int searchID = ID;
+	bool found = false;
 	
  	while(loop){
-		if(cur->fingertable[i] == searchID){
-			cur->resource.insert(pair<int, string>(store, key));
-			cout << "INSERTED " << key << " ( key=" << searchID << ") AT " << store << endl;
+
+		if(cur->ID == searchID){
+			cur->resource.insert(pair<int, string>(hashid, key));
+			cout << "INSERTED " << key << " (key=" << hashid << ") AT " << searchID << endl;
+			found = true;
 		}
-// 		
+
 		if(cur->next == NULL){
 			loop = false;
 		}else {
 			cur = cur->next;
 		}
-// 	}
+	}
 	
+	if(!found){
+		chord->resource.insert(pair<int, string>(hashid, key));
+		cout << "INSERTED " << key << " (key=" << hashid << ") AT " << chord->ID << endl;
+	}
 }
 
 // create a new node
@@ -316,6 +360,16 @@ unsigned int Hash (long int n, string datastring) {
 	}
 	
 	return key;
+}
+
+template <typename T> string convertToString(T val){
+		
+	stringstream strstream;
+	string path;
+	strstream << val;
+	strstream >> path;
+	
+	return path;
 }
 
 void outputChord(nodeptr & chord, long int n){

@@ -1,3 +1,13 @@
+/*
+
+	Name:			Matthew Saliba
+	Student#:		3284165
+	Subject:		CSCI319
+	Desc:			Assignment 2: Main File
+	Date:
+
+*/
+
 #include <iostream>
 #include <string>
 #include <map>
@@ -14,18 +24,30 @@ int main(){
 	
 	
 // fix duplicate peer entry
-	InitChord(size, 7, n, chord);
-
-
-//	AddPeer(3, n, chord);
+	InitChord(size, 0, n, chord);
+//	outputChord(chord, n);
+	AddPeer(7, n, chord);
+//	outputChord(chord, n);
+	AddPeer(3, n, chord);
+//	outputChord(chord, n);
+	RemovePeer(3, n, chord);
+//	outputChord(chord, n);
+	
 	AddPeer(12, n, chord);
+//	outputChord(chord, n);
+	AddPeer(3, n, chord);
+//	outputChord(chord, n);	
 	AddPeer(9, n, chord);
-	AddPeer(17, n, chord);
-	
-	
+//	outputChord(chord, n);
+	RemovePeer(3, n, chord);
 	outputChord(chord, n);
+	AddPeer(17, n, chord);
+//	outputChord(chord, n);	
+
 
 	FindKey("THIS IS A TEST", n, chord, n);
+	FindKey("Markus Hagenbuchner", n, chord, n);
+	FindKey("CSCI319", n, chord, n);
 		
 	/*
 	unsigned int temp;
