@@ -22,6 +22,19 @@ int main(){
 	int n = 5;
 	int size = 	pow(n);
 	
+	/*
+	InitChord(size, 1, n, chord);
+	AddPeer(4, n, chord);
+	AddPeer(9, n, chord);
+	AddPeer(11, n, chord);
+	AddPeer(14, n, chord);
+	AddPeer(18, n, chord);
+	AddPeer(20, n, chord);
+	AddPeer(21, n, chord);
+	AddPeer(28, n, chord);
+	outputChord(chord, n);*/
+	
+	
 	
 // fix duplicate peer entry
 	InitChord(size, 0, n, chord);
@@ -40,7 +53,7 @@ int main(){
 	AddPeer(9, n, chord);
 //	outputChord(chord, n);
 	RemovePeer(3, n, chord);
-	outputChord(chord, n);
+//	outputChord(chord, n);
 	AddPeer(17, n, chord);
 //	outputChord(chord, n);	
 

@@ -39,13 +39,10 @@ void InitChord(long int chordSize, long int ID, int size, nodeptr & chord){
 void AddPeer(long int ID, long int size, nodeptr & chord){
 	
 	bool greater = false;
-	bool initial = false;
-	
-	
+	bool ignore = false;
 	int counter = 0;
 	nodeptr tmp = createNode(ID, size);
 	string path;
-	
 	nodeptr cur = chord;
 	nodeptr store = NULL, pres;
 	long int prev = 0;
@@ -61,20 +58,26 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 			
 			path = convertToString(chord->ID);
 			while(cur->next != NULL){
-
-
-				if(!initial){
-					prev = cur->fingertable[0];
-					cout << "PREV: " << prev << endl;
-					initial = true;
-// 					if(cur->fingertable[0] >= ID && counter > 0){
-// 						cout << ">" << cur->ID;
-// 					}
-				}
 				
-				if(cur->ID > ID){
-					greater = true;	
-					break;
+
+				if(!ignore){
+
+					if(cur->ID >= ID){
+						greater = true;	
+						break;
+					}else {
+						if(counter == 0){
+							cout << cur->ID;
+						}else {
+							cout << ">" << cur->ID;
+						}
+						prev = cur->fingertable[0];
+						if(prev < ID){
+							ignore = true;
+						}
+					}
+				}else {
+					ignore= false;
 				}
 				cur = cur->next;
 				counter = 1;
@@ -103,7 +106,7 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 				
 				// store the new node
 				pres = cur->next;
-				cout << ">" << cur->ID << ">" << pres->ID;
+				cout << ">" << cur->ID;
 			}
 		}else {
 
