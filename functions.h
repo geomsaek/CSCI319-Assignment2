@@ -19,7 +19,7 @@ typedef node * nodeptr;
 
 struct node {
 	long int ID;
-	multimap<int, string> resource;
+	multimap<long int, string> resource;
 	nodeptr next;
 	nodeptr prev;
 	long int * fingertable;
@@ -30,7 +30,9 @@ void AddPeer(long int ID, long int n, nodeptr & chordsys);
 void RemovePeer(long int ID, long int size, nodeptr & chord);
 
 void Insert(string key, int n, nodeptr & chord, long int size);
-long int FindKey(long int hashid, long int size, nodeptr & chord);
+long int FindKey(string key, long int n, nodeptr & chord);
+void Delete(string hash, long int n, nodeptr & chord);
+void Print(string key, long int n, nodeptr & chord);
 
 unsigned int Hash (long int n, string dataitem);
 
@@ -39,6 +41,10 @@ unsigned int Hash (long int n, string dataitem);
 
 long int pow(int);
 bool check_resource(nodeptr & chord, long int hashid);
+void moveDeletedResource(nodeptr & cur, nodeptr & chord, long int ID, bool addPeer);
+void outputResources(nodeptr & cur);
+void returnPeer(nodeptr & positionPointer, nodeptr & chord, long int ID);
+void checkAddedPeers(nodeptr & newNode, nodeptr & chord);
 
 template <typename T> string convertToString(T val);
 

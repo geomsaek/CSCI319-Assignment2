@@ -136,9 +136,55 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 	}
 
 	fingerTable(pres, chord, ID, size);
-	moveResource(pres, chord, ID, size);
+	checkAddedPeers(pres, chord);
 	cout << endl;
 
+}
+
+// check resource relocation for newly added peer.
+void checkAddedPeers(nodeptr & newNode, nodeptr & chord){
+
+	nodeptr cur = chord;
+	bool mod = false;
+	bool loop = true;
+	std::multimap<long int,string>::iterator it;
+	std::multimap<long int,string>::iterator temp;
+
+	while(loop){
+		if(!cur->resource.empty()){
+
+			for (it=cur->resource.begin(); it!=cur->resource.end();){
+				if(cur->ID <= (*it).first){
+
+					if(newNode->ID >= (*it).first){
+						temp = it;
+						++temp;
+						newNode->resource.insert(pair<long int, string>((*it).first, (*it).second));
+						
+						it = cur->resource.erase(it);
+						it = temp;
+						mod = true;
+					}else {
+						 ++it;
+					}
+					
+				}else {
+					 ++it;
+				}
+			}
+		}
+		
+		if(mod){
+			break;
+		}
+
+		if(cur->next == NULL){
+			loop = false;
+		}else {
+			cur = cur->next;
+		}
+	}
+	
 }
 
 // remove peer function
@@ -179,6 +225,7 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 			}
 			cur = cur->next;	
 		}
+		moveDeletedResource(cur, chord, ID, false);
 		
 		// if the node is found within the list
 		if(found){
@@ -188,6 +235,7 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 			store->prev = storeBack;
 			storeBack->next = store;
 			
+
 			fingerTable(storeBack, chord, ID, size);
 		}else {
 			// the last node
@@ -195,7 +243,6 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 			cout << store->ID;
 			store->next = NULL;
 			delete cur;
-			
 			fingerTable(store, chord, ID, size);
 		}
 	}
@@ -203,9 +250,100 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 
 }
 
-void moveResource(nodeptr & cur, nodeptr & chord, long int ID, long int size){
+// delete function
+void Delete(string hash, long int n, nodeptr & chord){
+	
+	long int nodeID = FindKey(hash, n, chord);
+	long int hashid = Hash(n, hash);
+	nodeptr cur = chord;
+	nodeptr pos;
+	
+	std::multimap<long int,string>::iterator it;
+	std::multimap<long int,string>::iterator temp;
+	
+	returnPeer(pos, chord, nodeID);
+	
+	for (it=pos->resource.begin(); it!=pos->resource.end();){
+		if(hashid == (*it).first){
+			temp = it;
+			++temp;
+
+			cout << "REMOVED " << (*it).second << "(key=" << (*it).first << ") FROM " << pos->ID << endl;
+			it = pos->resource.erase(it);
+			it = temp;
+		}else {
+			 ++it;
+		}
+	}
+}
+
+// print the node by a string key
+void Print(string key, long int n, nodeptr & chord){
+	
+	long int nodeID = FindKey(key, n, chord);
+	
+	if(nodeID != -1){
+		nodeptr cur = chord;
+		nodeptr pos;
+		cout << "NODE: " << nodeID << endl;
+		returnPeer(pos, chord, nodeID);
+	
+		cout << "DATA AT NODE " << nodeID << ":" << endl;
+		if(pos->ID != nodeID){
+			cout << "NO DATA AVAILABLE" << endl;
+		}else {
+			outputResources(pos);
+		}
+		cout << "FINGER TABLE OF NODE " << nodeID << endl;
+	
+		for(int i = 0; i < n; i++){
+			cout << pos->fingertable[i] << " ";
+		}
+		cout << endl;
+	}
+}
+
+// move a deleted resource
+void moveDeletedResource(nodeptr & cur, nodeptr & chord, long int ID, bool addPeer){
+
+	bool loop = true;
+	long int prev = 0;
+	bool nextSearch = false;
+	bool resource = false;
+	std::multimap<long int,string>::iterator it;
+
+	nodeptr search = NULL;
+	long int nextID = cur->fingertable[0];
 	
 	
+	if(!cur->resource.empty()){
+	
+		for (it=cur->resource.begin(); it!=cur->resource.end(); ++it){
+
+				returnPeer(search, chord, nextID);
+				search->resource.insert(pair<long int, string>((*it).first, (*it).second));
+		}
+	}
+}
+
+void returnPeer(nodeptr & positionPointer, nodeptr & chord, long int ID){
+	
+	nodeptr cur = chord;
+	bool loop = true;
+	bool found = false;
+	
+	while(loop){
+
+		if(cur->ID == ID){
+			positionPointer = cur;
+			break;
+		}
+		if(cur->next == NULL){
+			loop = false;
+		}else {
+			cur = cur->next;
+		}	
+	}
 	
 }
 
@@ -286,7 +424,7 @@ void Insert(string key, int n, nodeptr & chord, long int size) {
 	
 	while(loop){
 		
-		if(store >= cur->ID){
+//		if(store >= cur->ID){
 			if(count == 0){
 				path = convertToString(cur->ID);
 			}else {
@@ -296,7 +434,7 @@ void Insert(string key, int n, nodeptr & chord, long int size) {
 			if(cur->ID >= hashid){
 
 				store = cur->ID;
-				cur->resource.insert(pair<int, string>(hashid, key));
+				cur->resource.insert(pair<long int, string>(hashid, key));
 				cout << "INSERTED " << key << " (key=" << hashid << ") AT " << store << endl;
 				storeRes = true;
 				loop = false;
@@ -312,7 +450,7 @@ void Insert(string key, int n, nodeptr & chord, long int size) {
 					}
 				}
 			}
-		}
+//		}
 		
 		if(cur->next == NULL){
 			loop = false;
@@ -323,7 +461,7 @@ void Insert(string key, int n, nodeptr & chord, long int size) {
 	}
 
 	if(!found){
-		chord->resource.insert(pair<int, string>(hashid, key));
+		chord->resource.insert(pair<long int, string>(hashid, key));
 		cout << "INSERTED " << key << " (key=" << hashid << ") AT " << chord->ID << endl;
 	}
 	cout << path <<endl;
@@ -332,19 +470,20 @@ void Insert(string key, int n, nodeptr & chord, long int size) {
 
 
 // find key function
-long int FindKey(long int hashid, long int size, nodeptr & chord){
+long int FindKey(string key, long int n, nodeptr & chord){
 
+	long int hashid = Hash(n, key);
 	bool loop = true;
 	bool found = false;
 	nodeptr cur = chord;
-	long int storeID = cur->ID;
+	long int storeID = -1;
 	
 	while(loop){
 					
 		found = check_resource(cur, hashid);
 		if(found){
 			storeID = cur->ID;
-			break;		
+			break;
 		}
 		
 		if(cur->next == NULL){
@@ -363,12 +502,13 @@ bool check_resource(nodeptr & chord, long int hashid){
 	nodeptr cur = chord;
 	bool found = false;
 	
-	std::multimap<int,string>::iterator it;
+	std::multimap<long int,string>::iterator it;
 	
 	for (it=cur->resource.begin(); it!=cur->resource.end(); ++it){
 		if((*it).first == hashid){
-//		    std::cout << (*it).first << " => " << (*it).second << '\n';
+
 		    found = true;
+		    break;
 		}
 	}
     
@@ -446,6 +586,9 @@ void outputChord(nodeptr & chord, long int n){
 			cout<< "[ " << i + 1 << " ] [ " << cur->fingertable[i] << " ] " << endl;
 		}
 		
+		cout << "RESOURCES" << endl;
+		outputResources(cur);
+		
 		cout << "=========================================================" << endl;
 		cur = cur->next;
 	}
@@ -454,5 +597,19 @@ void outputChord(nodeptr & chord, long int n){
 		for(int i = 0; i < n; i++){		
 			cout<< "[ " << i + 1 << " ] [ " << cur->fingertable[i] << " ] " << endl;
 		}
+		
+		cout << "RESOURCES" << endl;
+		outputResources(cur);
 	cout << "=========================================================" << endl;
+}
+
+void outputResources(nodeptr & cur){
+
+	nodeptr pos = cur;
+	
+	std::multimap<long int,string>::iterator it;
+	
+	 for (it=cur->resource.begin(); it!=cur->resource.end(); ++it)
+	    std::cout << (*it).first << " => " << (*it).second << '\n';
+	
 }

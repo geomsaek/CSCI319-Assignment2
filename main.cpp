@@ -56,23 +56,15 @@ int main(){
 	RemovePeer(3, n, chord);
 //	outputChord(chord, n);
 	AddPeer(17, n, chord);
-	outputChord(chord, n);	
-
 
 	Insert("THIS IS A TEST", n, chord, n);
 	Insert("Markus Hagenbuchner", n, chord, n);
 	Insert("CSCI319", n, chord, n);
 	
-	long int hashid = Hash(n, "THIS IS A TEST");
-	
-	long int temp = FindKey(hashid, n, chord);
-	cout << "PEER ID: " << temp << endl;
-		
-	/*
-	unsigned int temp;
-	string dataString = "CSCI319";
+//	Delete("THIS IS A TEST", n, chord);
+	Print("THIS IS A TEST", n, chord);
+//	outputChord(chord, n);
 
-	temp = Hash(size,dataString);	*/
 
 	return 0;
 }
