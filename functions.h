@@ -58,7 +58,5 @@ nodeptr createNode(long int ID, long int size);
 void greaterIndexSwap(nodeptr & cur, nodeptr & chord, nodeptr & tmp, nodeptr & pres);
 void lesserIndexSwap(long int ID, nodeptr & cur, nodeptr & chord, nodeptr & pres, nodeptr & tmp);
 void simpleIndexSwap(nodeptr & cur, nodeptr & tmp, nodeptr & pres);
-
-
-
-void outputChord(nodeptr & chord, long int n);
+void deleteGreaterIndex(nodeptr & cur, nodeptr & storeBack, nodeptr & chord);
+void deleteLesserIndex(nodeptr & cur, nodeptr & store);

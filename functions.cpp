@@ -120,8 +120,7 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 
 	cout << "PEER " << ID << " REMOVED" << endl;
 	nodeptr cur = chord;
-	nodeptr store;
-	nodeptr storeBack;
+	nodeptr store, storeBack;
 	bool found = false;
 	
 	long int storeID = chord->ID;
@@ -158,31 +157,10 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 		
 		// if the node is found within the list
 		if(found){
-			
-			if(cur->prev != NULL){
-				store = cur->next;
-				storeBack = cur->prev;
-				delete cur;
-				store->prev = storeBack;
-				storeBack->next = store;
-				
-				fingerTable(storeBack, chord, ID, size);
-			}else {
-				store = chord->next;				
-				chord->resource.clear();
-				delete chord;
-				chord = store;
-				chord->prev = NULL;
-				
-				storeBack = chord;
-				fingerTable(storeBack, chord, ID, size);				
-			}
+			deleteGreaterIndex(cur, storeBack, chord);
+			fingerTable(storeBack, chord, ID, size);
 		}else {
-			// the last node
-			store = cur->prev;
-			cout << store->ID;
-			store->next = NULL;
-			delete cur;
+			deleteLesserIndex(cur, store);
 			fingerTable(store, chord, ID, size);
 		}
 	}
@@ -820,38 +798,35 @@ void simpleIndexSwap(nodeptr & cur, nodeptr & tmp, nodeptr & pres){
 	cout << ">" << cur->ID;
 }
 
-
-
-
-
-
-
-void outputChord(nodeptr & chord, long int n){
+/******* REMOVE NODE SWAP: GREATER THAN FUNCTION ********/
+void deleteGreaterIndex(nodeptr & cur, nodeptr & storeBack, nodeptr & chord){
 	
-	nodeptr cur = chord;
-
-	cout << "=========================================================" << endl;	
-	while(cur->next != NULL){
-
-	cout << "**************** CUR ID: " << cur->ID << " ****************" << endl;
-	cout << "=========================================================" << endl;
-		for(int i = 0; i < n; i++){		
-			cout<< "[ " << i + 1 << " ] [ " << cur->fingertable[i] << " ] " << endl;
-		}
+	nodeptr store;
+	
+	if(cur->prev != NULL){
+		store = cur->next;
+		storeBack = cur->prev;
+		delete cur;
+		store->prev = storeBack;
+		storeBack->next = store;
 		
-		cout << "RESOURCES" << endl;
-		outputResources(cur);
+	}else {
+		store = chord->next;				
+		chord->resource.clear();
+		delete chord;
+		chord = store;
+		chord->prev = NULL;
 		
-		cout << "=========================================================" << endl;
-		cur = cur->next;
+		storeBack = chord;
 	}
-			cout << "=========================================================" << endl;
-	cout << "**************** CUR ID: " << cur->ID << "****************" << endl;
-		for(int i = 0; i < n; i++){		
-			cout<< "[ " << i + 1 << " ] [ " << cur->fingertable[i] << " ] " << endl;
-		}
-		
-		cout << "RESOURCES" << endl;
-		outputResources(cur);
-	cout << "=========================================================" << endl;
+}
+
+/******* REMOVE NODE SWAP: LESS THAN FUNCTION ********/
+void deleteLesserIndex(nodeptr & cur, nodeptr & store){
+	
+	// the last node
+	store = cur->prev;
+	cout << store->ID;
+	store->next = NULL;
+	delete cur;
 }
