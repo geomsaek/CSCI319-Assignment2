@@ -278,7 +278,6 @@ unsigned int Hash (string datastring, long int n) {
 	for(int i = 0; i < len; i++){
 		key = ((key << 5) + key) ^ datastring[i];
 	}
-	
 
 	long int result = pow(n);
 	
@@ -305,33 +304,31 @@ void Insert(string key, int n, nodeptr & chord) {
 	
 	while(loop){
 		
-//		if(store >= cur->ID){
-			if(count == 0){
-				path = convertToString(cur->ID);
-			}else {
-				path = path + ">" + convertToString(cur->ID);
-			}
+		if(count == 0){
+			path = convertToString(cur->ID);
+		}else {
+			path = path + ">" + convertToString(cur->ID);
+		}
 
-			if(cur->ID >= hashid){
+		if(cur->ID >= hashid){
 
-				store = cur->ID;
-				cur->resource.insert(pair<long int, string>(hashid, key));
-				cout << "INSERTED " << key << " (key=" << hashid << ") AT " << store << endl;
-				storeRes = true;
-				loop = false;
-				found = true;
-			}else {
-			
-				for(int i = 0; i < n; i++){
-					if(cur->fingertable[i] >= hashid){
-						store = cur->fingertable[i];
-						found = true;
-						storeRes = false;
-						break;
-					}
+			store = cur->ID;
+			cur->resource.insert(pair<long int, string>(hashid, key));
+			cout << "INSERTED " << key << " (key=" << hashid << ") AT " << store << endl;
+			storeRes = true;
+			loop = false;
+			found = true;
+		}else {
+		
+			for(int i = 0; i < n; i++){
+				if(cur->fingertable[i] >= hashid){
+					store = cur->fingertable[i];
+					found = true;
+					storeRes = false;
+					break;
 				}
 			}
-//		}
+		}
 		
 		if(cur->next == NULL){
 			loop = false;
