@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
 		string file = argv[1];
 		nodeptr chord = NULL;
 		int n = 5;
-		int size = 	pow(n);
+		int size = pow(n);
 	
 		if(file.length() > 0){
 			Read(file, chord, n, size);
