@@ -105,16 +105,20 @@ parameter. Similar as before, this function uses the hash function to compute th
 FindKey(.) to compute the peer responsible for the data item, then removes the string from the memory of that
 peer. If successful, this function will print to the screen: “REMOVED <string> (key=<key_value>) FROM “
 followed by the ID value of the peer from which the string was removed.
+
 Print(key, ...): This function will print information about the peer that is responsible for the given key.
 Thus, the function may need to call FindKey() in order to find the peer that is responsible for key value. Once
 found, the target peer will then print “DATA AT NODE <MYID:>”, where <MYID> is the ID of the peer,
 followed by a newline, then followed by the list of all data items (strings) stored at this node (separated by a
 newline), followed by the string “FINGER TABLE OF NODE <MYID>”, a newline, and the content of the
 finger table of node “MYID”.
+
 Read(filename): Reads a set of instructions from a given text file. The file contains one instruction per
 line. Anything after a hash '#' symbol is to be treated as comment and is to be ignored. The instructions are
 named analogous to the functions which need to be called. For example, a file may contain the following list of
 instructions:
+
+
 initchord 5 #Create a CHORD of size 32
 addpeer 7 #Add a new peer whose ID is to be 7
 addpeer 3 #Add peer 3...
@@ -135,36 +139,46 @@ print 7
 print 9
 print 12
 print 17
+
+
 When compiled, the program should be executed at a command line and accept the file name of a file containing
 the instructions. Assuming that the compiled code is named CHORD, and assume that the file myfile.dat
 contains instructions (in the format as was shown before), then the program should be able to run by issuing the
-following command line instruction:
+following command line instruction: 
+
 ./CHORD myfile.dat
+
 this would execute all instructions within the myfile.dat. There is one instruction per line in myfile.dat.
 Instructions not recognized by your program should be ignored quietly (i.e. no error message). Do not assume a
 maximum file size for the file that contains the instructions. In other words, the file may contain any arbitrary
 number of instructions.
+
 A sample output of the chord for the example shown above is given in Attachment 3 below.
 Note0: There is no node other than index nodes (the peers) in a CHORD. Thus, there is no master node or
 supernode. This also means that any activity within a CHORD must be initiated by one of the index nodes in the
 CHORD. An exception is the function Read which is to be invoked by the main routine of your implementation.
 All other functions such as AddPeer, RemovePeer, FindKey, Hash, Insert, Delete, and Print must be invoked by a
 (one) peer of the CHORD. When inintiating any one of these activities you are permitted to either:
-a.) select a peer at random
-b.) select the first peer in the CHORD (Peer with the lowest ID)
-c.) select the last peer (peer with the highest ID)
+
+	a.) select a peer at random
+	b.) select the first peer in the CHORD (Peer with the lowest ID)
+	c.) select the last peer (peer with the highest ID)
+	
 The example shown in Attachment 3 assumes that strategy b (select the peer with the lowest ID) is taken. The
 activity “addpeer 7” in the 2nd line of the script above would hence be invoked by peer ID=0 since this is the
 peer with the lowest ID in the CHORD at the time of processing this activity.
 Note1: Any of the functions mentioned above may accept any parameters in addition to the one specified, and
 may return a value of your choosing.
+
 Note2: The task is not to implement a full Chord system. There is no need to produce a multi-threaded
 implementation. The aim is to:
-1.) Simulate basic concepts of Chord. In particular, a deeper understanding to searching withing Chord, and
-the maintenance of index nodes is to be obtained.
-2.) Develop an appreciation of mechanisms required for maintaining index tables.
-3.) Understand the impact of the size of an index table, and the number of index nodes on the efficiency of
-the chord system.
+
+	1.) Simulate basic concepts of Chord. In particular, a deeper understanding to searching withing Chord, and
+	the maintenance of index nodes is to be obtained.
+	2.) Develop an appreciation of mechanisms required for maintaining index tables.
+	3.) Understand the impact of the size of an index table, and the number of index nodes on the efficiency of
+	the chord system.
+	
 Note 3: Your code will be compiled and marked using gcc, g++, or java as available within Ubuntu on the lab
 computers for this subject. Ensure that your code compiles and runs within the UNIX environment used in the
 computer lab. The correctness, functionality, and efficiency of your program will be marked. Ensure that
@@ -172,17 +186,22 @@ your code is scalable with respect to the size of the CHORD, number of index nod
 stored. The code itself is being verified to contain your own work, and that it complies with the given task
 specifications, but is otherwise not marked. We will use our own scripts to test your program. Do not submit
 your own script file(s).
+
 Note 4: While the code will not be marked, the lecturer and the tutors will look at the code very carefully in
 order to identify whether the task was addressed correctly. Remember that the task is to simulate Chord. This
 also means that no single peer has complete information. For example, this means that a search needs to be
 carried out when inserting or removing a peer from Chord. We will look at the efficiency of your code.
+
 Note 5: Your code is not to produce outputs other than those specified above. This means that you do not print to
 stdout, stderr, or any other output stream any debugging information, or any other information not required by
 this assignment. A violation to this will attract penalty marks!
+
 Note 6: The correctness and speed (the efficiency) of your implementation will influence the marks that you can
 earn for this task.
+
 Note 7: We will test your code on the ability to efficiently handle possibly large amounts of peers and possibly
 large amount of data items. We will test the correctness of the finger tables and the correct storage location of
 any data item stored in the Chord.
+
 Hint: What if there are only few peers in the Chord but a lot of data items that need to be stored? Think about
 how to maintain the speed of adding/removing data items even if the number of peers is limited.

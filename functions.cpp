@@ -17,12 +17,18 @@
 #include "functions.h"
 using namespace std;
 
-// initialise the CHORD structure
 
-void InitChord(long int chordSize, long int ID, int size, nodeptr & chord){
+//
+//		REQUIRED FUNCTIONS
+//
+//
+
+/******* INITIALISE CHORD FUNCTION ********/
+// where n = chord size
+void InitChord(long int n, long int ID, int size, nodeptr & chord){
 	
 	if(chord != NULL){
-		reinitialise(chord, chordSize, ID, size);
+		reinitialise(chord, n, ID, size);
 	}else {
 		nodeptr tmp = createNode(ID, size);
 		string path;
@@ -40,31 +46,7 @@ void InitChord(long int chordSize, long int ID, int size, nodeptr & chord){
 	}
 }
 
-void reinitialise(nodeptr & chord, long int chordSize, long int ID, int size){
-	
-	nodeptr temp;
-		
-		while(chord->next != NULL){
-		
-			temp = chord;
-			chord = chord->next;
-			delete [] temp->fingertable;
-			temp->resource.clear();
-			delete temp;
-		}
-		
-		delete [] chord->fingertable;
-		chord->resource.clear();
-		delete chord;
-		
-		chord = NULL;
-		
-		InitChord(chordSize, ID, size, chord);
-	
-}
-
-// add a peer to the network
-
+/******* ADD PEER FUNCTION ********/
 void AddPeer(long int ID, long int size, nodeptr & chord){
 	
 	bool greater = false;
@@ -137,7 +119,8 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 					chord = tmp;
 					chord->next = mine;
 					mine->prev = chord;
-
+					
+					cout << chord->ID << ">" << mine->ID;
 					pres = chord;
 				}
 			}else{
@@ -162,7 +145,7 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 				
 				pres = store;
 				
-				cout << ">" << chord->ID << ">" << chord->next->ID;
+				cout << chord->ID << ">" << chord->next->ID;
 				
 			}else {
 				chord->next = tmp;
@@ -181,53 +164,7 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 
 }
 
-// check resource relocation for newly added peer.
-void checkAddedPeers(nodeptr & newNode, nodeptr & chord){
-
-	nodeptr cur = chord;
-	bool mod = false;
-	bool loop = true;
-	std::multimap<long int,string>::iterator it;
-	std::multimap<long int,string>::iterator temp;
-
-	while(loop){
-		if(!cur->resource.empty()){
-
-			for (it=cur->resource.begin(); it!=cur->resource.end();){
-				if(cur->ID <= (*it).first){
-
-					if(newNode->ID >= (*it).first){
-						temp = it;
-						++temp;
-						newNode->resource.insert(pair<long int, string>((*it).first, (*it).second));
-						
-						it = cur->resource.erase(it);
-						it = temp;
-						mod = true;
-					}else {
-						 ++it;
-					}
-					
-				}else {
-					 ++it;
-				}
-			}
-		}
-		
-		if(mod){
-			break;
-		}
-
-		if(cur->next == NULL){
-			loop = false;
-		}else {
-			cur = cur->next;
-		}
-	}
-	
-}
-
-// remove peer function
+/******* REMOVE PEER FUNCTION ********/
 void RemovePeer(long int ID, long int size, nodeptr & chord){
 
 	cout << "PEER " << ID << " REMOVED" << endl;
@@ -302,11 +239,120 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 
 }
 
-// delete function
+/******* FIND KEY FUNCTION ********/
+long int FindKey(string key, long int n, nodeptr & chord){
+
+	long int hashid = Hash(key,n);
+	bool loop = true;
+	bool found = false;
+	nodeptr cur = chord;
+	long int storeID = -1;
+	
+	while(loop){
+					
+		found = check_resource(cur, hashid);
+		if(found){
+			storeID = cur->ID;
+			break;
+		}
+		
+		if(cur->next == NULL){
+			loop = false;
+		}else {
+			cur = cur->next;
+		}
+	}
+	
+	return storeID;
+}
+
+
+/******* HASH FUNCTION ********/
+unsigned int Hash (string datastring, long int n) {
+
+
+	long int key = 0;
+	int len = datastring.length();
+
+	// provided algorithm
+	for(int i = 0; i < len; i++){
+		key = ((key << 5) + key) ^ datastring[i];
+	}
+	
+
+	long int result = pow(n);
+	
+	key = key % result;
+	if(key < 0){
+		key += result;
+	}
+	
+	return key;
+}
+
+
+/******* INSERT FUNCTION ********/
+
+void Insert(string key, int n, nodeptr & chord) {
+
+	long int hashid = Hash(key,n);
+	nodeptr cur = chord;
+	long int store = chord->ID;
+	bool loop = true, found = false, storeRes = false;
+	
+	string path;
+	int count = 0;
+	
+	while(loop){
+		
+//		if(store >= cur->ID){
+			if(count == 0){
+				path = convertToString(cur->ID);
+			}else {
+				path = path + ">" + convertToString(cur->ID);
+			}
+
+			if(cur->ID >= hashid){
+
+				store = cur->ID;
+				cur->resource.insert(pair<long int, string>(hashid, key));
+				cout << "INSERTED " << key << " (key=" << hashid << ") AT " << store << endl;
+				storeRes = true;
+				loop = false;
+				found = true;
+			}else {
+			
+				for(int i = 0; i < n; i++){
+					if(cur->fingertable[i] >= hashid){
+						store = cur->fingertable[i];
+						found = true;
+						storeRes = false;
+						break;
+					}
+				}
+			}
+//		}
+		
+		if(cur->next == NULL){
+			loop = false;
+		}else {
+			cur = cur->next;
+		}
+		count = 1;
+	}
+
+	if(!found){
+		chord->resource.insert(pair<long int, string>(hashid, key));
+		cout << "INSERTED " << key << " (key=" << hashid << ") AT " << chord->ID << endl;
+	}
+	cout << path <<endl;	
+}
+
+/******* DELETE FUNCTION ********/
 void Delete(string hash, long int n, nodeptr & chord){
 	
 	long int nodeID = FindKey(hash, n, chord);
-	long int hashid = Hash(n, hash);
+	long int hashid = Hash(hash,n);
 	nodeptr cur = chord;
 	nodeptr pos;
 	
@@ -329,7 +375,7 @@ void Delete(string hash, long int n, nodeptr & chord){
 	}
 }
 
-// print the node by a string key
+/******* PRINT FUNCTION ********/
 void Print(long int ID, long int n, nodeptr & chord){
 	
 	long int hashid;
@@ -348,6 +394,7 @@ void Print(long int ID, long int n, nodeptr & chord){
 	cout << endl;
 }
 
+/******* READ FUNCTION ********/
 void Read(string filename, nodeptr & chord, int n, long int size){
 
 	ifstream file;
@@ -406,6 +453,230 @@ void Read(string filename, nodeptr & chord, int n, long int size){
 	file.close();	
 }
 
+
+//
+//		HELPER FUNCTIONS
+//
+//
+
+/******* POWER OF FUNCTION ********/
+long int pow(int n){
+
+	long int size = n;
+	long result;	
+	result = 1 << size;
+	
+	return result;
+}
+
+/******* CHECK RESOURCE FUNCTION ********/
+bool check_resource(nodeptr & chord, long int hashid){
+
+	nodeptr cur = chord;
+	bool found = false;
+	
+	std::multimap<long int,string>::iterator it;
+	
+	for (it=cur->resource.begin(); it!=cur->resource.end(); ++it){
+		if((*it).first == hashid){
+
+		    found = true;
+		    break;
+		}
+	}
+    
+    return found;
+}
+
+/******* MOVE DELETED RESOURCE FUNCTION ********/
+void moveDeletedResource(nodeptr & cur, nodeptr & chord, long int ID, bool addPeer){
+
+	bool loop = true;
+	long int prev = 0;
+	bool nextSearch = false;
+	bool resource = false;
+	std::multimap<long int,string>::iterator it;
+
+	nodeptr search = NULL;
+	long int nextID = cur->fingertable[0];
+	
+	
+	if(!cur->resource.empty()){
+	
+		for (it=cur->resource.begin(); it!=cur->resource.end(); ++it){
+
+				returnPeer(search, chord, nextID);
+				search->resource.insert(pair<long int, string>((*it).first, (*it).second));
+		}
+	}
+}
+
+/******* OUTPUT RESOURCE FUNCTION ********/
+void outputResources(nodeptr & cur){
+
+	nodeptr pos = cur;
+	
+	std::multimap<long int,string>::iterator it;
+	
+	 for (it=cur->resource.begin(); it!=cur->resource.end(); ++it)
+	    std::cout << (*it).first << " => " << (*it).second << '\n';
+	
+}
+
+/******* RETURN PEER FUNCTION ********/
+void returnPeer(nodeptr & positionPointer, nodeptr & chord, long int ID){
+	
+	positionPointer = chord;
+	bool loop = true;
+	
+	while(loop){
+
+		if(positionPointer->ID == ID){
+			break;
+		}
+		if(positionPointer->next == NULL){
+			loop = false;
+		}else {
+			positionPointer = positionPointer->next;
+		}	
+	}
+	
+}
+
+/******* CHECK ADDED PEERS FUNCTION ********/
+// check resource relocation for newly added peer.
+void checkAddedPeers(nodeptr & newNode, nodeptr & chord){
+
+	nodeptr cur = chord;
+	bool mod = false;
+	bool loop = true;
+	std::multimap<long int,string>::iterator it;
+	std::multimap<long int,string>::iterator temp;
+
+	while(loop){
+		if(!cur->resource.empty()){
+
+			for (it=cur->resource.begin(); it!=cur->resource.end();){
+				if(cur->ID <= (*it).first){
+
+					if(newNode->ID >= (*it).first){
+						temp = it;
+						++temp;
+						newNode->resource.insert(pair<long int, string>((*it).first, (*it).second));
+						
+						it = cur->resource.erase(it);
+						it = temp;
+						mod = true;
+					}else {
+						 ++it;
+					}
+					
+				}else {
+					 ++it;
+				}
+			}
+		}
+		
+		if(mod){
+			break;
+		}
+
+		if(cur->next == NULL){
+			loop = false;
+		}else {
+			cur = cur->next;
+		}
+	}
+}
+
+/******* REINITIALISE CHORD FUNCTION ********/
+void reinitialise(nodeptr & chord, long int chordSize, long int ID, int size){
+	
+	nodeptr temp;
+		
+		while(chord->next != NULL){
+		
+			temp = chord;
+			chord = chord->next;
+			delete [] temp->fingertable;
+			temp->resource.clear();
+			delete temp;
+		}
+		
+		delete [] chord->fingertable;
+		chord->resource.clear();
+		delete chord;
+
+		chord = NULL;
+		
+		InitChord(chordSize, ID, size, chord);	
+}
+
+/******* SPLIT STRING FUNCTION ********/
+// Delimit a string with a delimiter and return a vector object
+vector<string> split(const string &s, char delim) {
+
+    stringstream ss(s);
+    string item;
+    vector<string> tokens;
+    while (getline(ss, item, delim)) {
+        tokens.push_back(item);
+    }
+    return tokens;
+   
+}
+
+/******* CHECK COMMAND FUNCTION ********/
+// check the command for a file and return an int identifier
+int check_command(string val){
+
+	if(val == "initchord"){
+		return 0;
+	}
+	if(val == "addpeer"){
+		return 1;
+	}
+	if(val == "removepeer"){
+		return 2;
+	}
+	if(val == "insert"){
+		return 3;
+	}
+	if(val == "print"){
+		return 4;
+	}
+	if(val == "delete"){
+		return 5;
+	}
+
+	return -1;
+}
+
+/******* CONSTRUCT COMMAND FUNCTION ********/
+// construct a command based on an int identifier
+void construct_command(int commandID, string value, string & commandVal){
+	
+	switch(commandID){
+		case 0:
+		case 1:
+		case 2:
+		case 4:
+			commandVal = value;
+		break;
+		
+		case 3:
+		case 5:
+			if(commandVal.length() > 0){
+				commandVal = commandVal + " " + value;
+			}else {
+				commandVal = value;
+			}
+		break;
+	}
+}
+
+/******* EXECUTE COMMAND FUNCTION ********/
+// receive an integer id and command value to execute
 void execute_command(int commandID, string commandVal, nodeptr & chord, int n, long int size){
 
 	long int ID;
@@ -444,114 +715,23 @@ void execute_command(int commandID, string commandVal, nodeptr & chord, int n, l
 			Delete(commandVal, n, chord);
 		break;
 
-	}
-	
+	}	
 }
 
-int check_command(string val){
-
-	if(val == "initchord"){
-		return 0;
-	}
-	if(val == "addpeer"){
-		return 1;
-	}
-	if(val == "removepeer"){
-		return 2;
-	}
-	if(val == "insert"){
-		return 3;
-	}
-	if(val == "print"){
-		return 4;
-	}
-	if(val == "delete"){
-		return 5;
-	}
-
-	return -1;
-}
-
-void construct_command(int commandID, string value, string & commandVal){
-	
-	switch(commandID){
-	
-		case 0:
-		case 1:
-		case 2:
-		case 4:
-			commandVal = value;
-		break;
+/******* CONVERT TO STRING FUNCTION ********/
+// convert a value to a string
+template <typename T> string convertToString(T val){
 		
-		case 3:
-		case 5:
-			if(commandVal.length() > 0){
-				commandVal = commandVal + " " + value;
-			}else {
-				commandVal = value;
-			}
-		break;
-	}
-
+	stringstream strstream;
+	string path;
+	strstream << val;
+	strstream >> path;
+	
+	return path;
 }
 
-
-vector<string> split(const string &s, char delim) {
-
-    stringstream ss(s);
-    string item;
-    vector<string> tokens;
-    while (getline(ss, item, delim)) {
-        tokens.push_back(item);
-    }
-    return tokens;
-    
-}
-
-// move a deleted resource
-void moveDeletedResource(nodeptr & cur, nodeptr & chord, long int ID, bool addPeer){
-
-	bool loop = true;
-	long int prev = 0;
-	bool nextSearch = false;
-	bool resource = false;
-	std::multimap<long int,string>::iterator it;
-
-	nodeptr search = NULL;
-	long int nextID = cur->fingertable[0];
-	
-	
-	if(!cur->resource.empty()){
-	
-		for (it=cur->resource.begin(); it!=cur->resource.end(); ++it){
-
-				returnPeer(search, chord, nextID);
-				search->resource.insert(pair<long int, string>((*it).first, (*it).second));
-		}
-	}
-}
-
-void returnPeer(nodeptr & positionPointer, nodeptr & chord, long int ID){
-	
-	positionPointer = chord;
-	bool loop = true;
-	
-	while(loop){
-
-		if(positionPointer->ID == ID){
-			break;
-		}
-		if(positionPointer->next == NULL){
-			loop = false;
-		}else {
-			positionPointer = positionPointer->next;
-		}	
-	}
-	
-}
-
+/******* FINGER TABLE FUNCTION ********/
 // populate the finger table for the current node
-
 void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, long int size){
 
 	nodeptr backwardCur = curNode, forward, start;
@@ -613,111 +793,7 @@ void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, long int size)
 	}
 }
 
-// add the resource to the designated node
-
-void Insert(string key, int n, nodeptr & chord) {
-
-	long int hashid = Hash(n, key);
-	nodeptr cur = chord;
-	long int store = chord->ID;
-	bool loop = true, found = false, storeRes = false;
-	
-	string path;
-	int count = 0;
-	
-	while(loop){
-		
-//		if(store >= cur->ID){
-			if(count == 0){
-				path = convertToString(cur->ID);
-			}else {
-				path = path + ">" + convertToString(cur->ID);
-			}
-
-			if(cur->ID >= hashid){
-
-				store = cur->ID;
-				cur->resource.insert(pair<long int, string>(hashid, key));
-				cout << "INSERTED " << key << " (key=" << hashid << ") AT " << store << endl;
-				storeRes = true;
-				loop = false;
-				found = true;
-			}else {
-			
-				for(int i = 0; i < n; i++){
-					if(cur->fingertable[i] >= hashid){
-						store = cur->fingertable[i];
-						found = true;
-						storeRes = false;
-						break;
-					}
-				}
-			}
-//		}
-		
-		if(cur->next == NULL){
-			loop = false;
-		}else {
-			cur = cur->next;
-		}
-		count = 1;
-	}
-
-	if(!found){
-		chord->resource.insert(pair<long int, string>(hashid, key));
-		cout << "INSERTED " << key << " (key=" << hashid << ") AT " << chord->ID << endl;
-	}
-	cout << path <<endl;
-	
-}
-
-
-// find key function
-long int FindKey(string key, long int n, nodeptr & chord){
-
-	long int hashid = Hash(n, key);
-	bool loop = true;
-	bool found = false;
-	nodeptr cur = chord;
-	long int storeID = -1;
-	
-	while(loop){
-					
-		found = check_resource(cur, hashid);
-		if(found){
-			storeID = cur->ID;
-			break;
-		}
-		
-		if(cur->next == NULL){
-			loop = false;
-		}else {
-			cur = cur->next;
-		}
-	}
-	
-	return storeID;
-}
-
-// check the current node for the resource
-bool check_resource(nodeptr & chord, long int hashid){
-
-	nodeptr cur = chord;
-	bool found = false;
-	
-	std::multimap<long int,string>::iterator it;
-	
-	for (it=cur->resource.begin(); it!=cur->resource.end(); ++it){
-		if((*it).first == hashid){
-
-		    found = true;
-		    break;
-		}
-	}
-    
-    return found;
-}
-
+/******* CREATE NODE FUNCTION ********/
 // create a new node
 nodeptr createNode(long int ID, long int size){
 
@@ -728,91 +804,5 @@ nodeptr createNode(long int ID, long int size){
 	tmp->fingertable = new long int[size];
 	
 	return tmp;
-	
-}
-
-// power of function
-
-long int pow(int n){
-
-	long int size = n;
-	long result;	
-	result = 1 << size;
-	
-	return result;
-}
-
-// hashing function
-
-unsigned int Hash (long int n, string datastring) {
-
-
-	long int key = 0;
-	int len = datastring.length();
-
-	// provided algorithm
-	for(int i = 0; i < len; i++){
-		key = ((key << 5) + key) ^ datastring[i];
-	}
-	
-
-	long int result = pow(n);
-	
-	key = key % result;
-	if(key < 0){
-		key += result;
-	}
-	
-	return key;
-}
-
-template <typename T> string convertToString(T val){
-		
-	stringstream strstream;
-	string path;
-	strstream << val;
-	strstream >> path;
-	
-	return path;
-}
-
-void outputChord(nodeptr & chord, long int n){
-	
-	nodeptr cur = chord;
-
-	cout << "=========================================================" << endl;	
-	while(cur->next != NULL){
-
-	cout << "**************** CUR ID: " << cur->ID << " ****************" << endl;
-	cout << "=========================================================" << endl;
-		for(int i = 0; i < n; i++){		
-			cout<< "[ " << i + 1 << " ] [ " << cur->fingertable[i] << " ] " << endl;
-		}
-		
-		cout << "RESOURCES" << endl;
-		outputResources(cur);
-		
-		cout << "=========================================================" << endl;
-		cur = cur->next;
-	}
-			cout << "=========================================================" << endl;
-	cout << "**************** CUR ID: " << cur->ID << "****************" << endl;
-		for(int i = 0; i < n; i++){		
-			cout<< "[ " << i + 1 << " ] [ " << cur->fingertable[i] << " ] " << endl;
-		}
-		
-		cout << "RESOURCES" << endl;
-		outputResources(cur);
-	cout << "=========================================================" << endl;
-}
-
-void outputResources(nodeptr & cur){
-
-	nodeptr pos = cur;
-	
-	std::multimap<long int,string>::iterator it;
-	
-	 for (it=cur->resource.begin(); it!=cur->resource.end(); ++it)
-	    std::cout << (*it).first << " => " << (*it).second << '\n';
 	
 }
