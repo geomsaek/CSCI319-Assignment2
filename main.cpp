@@ -11,6 +11,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include<fstream>
 #include "functions.h"
 
 using namespace std;
@@ -35,10 +36,22 @@ int main(){
 	outputChord(chord, n);*/
 	
 	
+//	Read("myfile.dat", nodeptr & chord, int n);
+
+	InitChord(size, 5, n, chord);
+	AddPeer(7, n, chord);
+	AddPeer(3, n, chord);
+	RemovePeer(3, n, chord);
+	AddPeer(12, n, chord);
 	
+
+//	AddPeer(3, n, chord);
+	outputChord(chord, n);
+	/*
 // fix duplicate peer entry
 	InitChord(size, 0, n, chord);
 //	InitChord(size, 1, n, chord);
+//	InitChord(size, 4, n, chord);
 //	outputChord(chord, n);
 	AddPeer(7, n, chord);
 //	outputChord(chord, n);
@@ -65,7 +78,7 @@ int main(){
 	Print("THIS IS A TEST", n, chord);
 	Delete("THIS IS A TEST", n, chord);
 	Print("THIS IS A TEST", n, chord);
-//	outputChord(chord, n);
+//	outputChord(chord, n);*/
 
 
 	return 0;

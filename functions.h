@@ -33,7 +33,7 @@ void Insert(string key, int n, nodeptr & chord, long int size);
 long int FindKey(string key, long int n, nodeptr & chord);
 void Delete(string hash, long int n, nodeptr & chord);
 void Print(string key, long int n, nodeptr & chord);
-
+void Read(string filename, nodeptr & chord, int n);
 unsigned int Hash (long int n, string dataitem);
 
 

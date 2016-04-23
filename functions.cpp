@@ -11,6 +11,7 @@
 #include<iostream>
 #include<map>
 #include<string>
+#include<fstream>
 #include<sstream>
 #include "functions.h"
 using namespace std;
@@ -20,9 +21,7 @@ using namespace std;
 void InitChord(long int chordSize, long int ID, int size, nodeptr & chord){
 	
 	if(chord != NULL){
-		cout << "RES" << endl;
 		reinitialise(chord, chordSize, ID, size);
-		cout << "back" << endl;
 	}else {
 		nodeptr tmp = createNode(ID, size);
 		string path;
@@ -48,15 +47,18 @@ void reinitialise(nodeptr & chord, long int chordSize, long int ID, int size){
 		
 			temp = chord;
 			chord = chord->next;
+			delete [] temp->fingertable;
+			temp->resource.clear();
 			delete temp;
-		}	
+		}
+		
+		delete [] chord->fingertable;
+		chord->resource.clear();
 		delete chord;
 		
 		chord = NULL;
 		
 		InitChord(chordSize, ID, size, chord);
-
-
 	
 }
 
@@ -117,8 +119,7 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 			if(greater){
 				
 				// if the greater node is after the starting node
-				//if(cur->prev != NULL){
-
+				if(cur->prev != NULL){
 					store = cur->prev;
 					cur->prev = tmp;
 					tmp->prev = store;
@@ -128,19 +129,17 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 					pres = store->next;
 
 					cout << ">" << tmp->ID;
-				/*}else {
-					// if the new node is to be at the start
-					store = cur;
+				}else {
+				
+					// copy the node
+					nodeptr mine = chord;
+					chord = tmp;
+					chord->next = mine;
+					mine->prev = chord;
 
-					cur = tmp;
-					cout << "CUR...: " << cur->ID << endl;
-					cur->next = store;
-
-					store->prev = cur;
-					cout << "tUR...: " << store->prev->ID << endl;					
-					pres = cur;
-					cout << cur->ID << ">" << store->ID;
-				}*/
+					pres = chord;
+				}
+				
 				
 			}else{
 				cur->next = tmp;
@@ -346,6 +345,22 @@ void Print(string key, long int n, nodeptr & chord){
 		cout << pos->fingertable[i] << " ";
 	}
 	cout << endl;
+}
+
+void Read(string filename, nodeptr & chord, int n){
+
+	ifstream file;
+	file.open(filename);
+	if(file.fail()){
+		file.clear();
+		file.close();
+		return;
+	}else {
+		
+	}
+	
+	file.close();
+	
 }
 
 void findnodeInfo(long int ID, nodeptr & pos, nodeptr & chord){
