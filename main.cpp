@@ -16,13 +16,22 @@
 
 using namespace std;
 
-int main(){
+int main(int argc, char *argv[]){
 
 
-	nodeptr chord = NULL;
-	int n = 5;
-	int size = 	pow(n);
+	if(argc > 1){
+		string file = argv[1];
+		nodeptr chord = NULL;
+		int n = 5;
+		int size = 	pow(n);
 	
+		if(file.length() > 0){
+			Read(file, chord, n, size);
+		}
+		outputChord(chord, n);
+	}
+
+
 	/*
 	InitChord(size, 1, n, chord);
 	AddPeer(4, n, chord);
@@ -36,7 +45,7 @@ int main(){
 	outputChord(chord, n);*/
 	
 	
-	Read("myfile.dat", nodeptr & chord, int n);
+
 
 // 	InitChord(size, 8, n, chord);
 // 	AddPeer(7, n, chord);
@@ -46,8 +55,9 @@ int main(){
 	
 
 //	AddPeer(3, n, chord);
-	outputChord(chord, n);
-	/*
+//	outputChord(chord, n);
+
+/*
 // fix duplicate peer entry
 	InitChord(size, 0, n, chord);
 //	InitChord(size, 1, n, chord);
@@ -71,9 +81,9 @@ int main(){
 //	outputChord(chord, n);
 	AddPeer(17, n, chord);
 
-	Insert("THIS IS A TEST", n, chord, n);
-	Insert("Markus Hagenbuchner", n, chord, n);
-	Insert("CSCI319", n, chord, n);
+	Insert("THIS IS A TEST", n, chord);
+	Insert("Markus Hagenbuchner", n, chord);
+	Insert("CSCI319", n, chord);
 	
 	Print("THIS IS A TEST", n, chord);
 	Delete("THIS IS A TEST", n, chord);

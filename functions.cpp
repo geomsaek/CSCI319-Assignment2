@@ -10,6 +10,7 @@
 
 #include<iostream>
 #include<map>
+#include<vector>
 #include<string>
 #include<fstream>
 #include<sstream>
@@ -139,8 +140,6 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 
 					pres = chord;
 				}
-				
-				
 			}else{
 				cur->next = tmp;
 				tmp->prev = cur;
@@ -275,7 +274,7 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 			if(cur->prev != NULL){
 				store = cur->next;
 				storeBack = cur->prev;
-				delete &cur;
+				delete cur;
 				store->prev = storeBack;
 				storeBack->next = store;
 				
@@ -331,27 +330,17 @@ void Delete(string hash, long int n, nodeptr & chord){
 }
 
 // print the node by a string key
-void Print(string key, long int n, nodeptr & chord){
+void Print(long int ID, long int n, nodeptr & chord){
 	
-	long int nodeID = FindKey(key, n, chord);
 	long int hashid;
-	nodeptr cur = chord;
 	nodeptr pos;
-	
-	if(nodeID != -1){
-		returnPeer(pos, chord, nodeID);
-	}else {
 
-		hashid = Hash(n,key);
-		findnodeInfo(hashid, pos, chord);
-		nodeID = pos->ID;
+	returnPeer(pos, chord, ID);
 	
-	}
-
-	cout << "NODE: " << nodeID << endl;
-	cout << "DATA AT NODE " << nodeID << ":" << endl;
+	cout << "NODE: " << ID << endl;
+	cout << "DATA AT NODE " << ID << ":" << endl;
 	outputResources(pos);
-	cout << "FINGER TABLE OF NODE " << nodeID << endl;
+	cout << "FINGER TABLE OF NODE " << ID << endl;
 
 	for(int i = 0; i < n; i++){
 		cout << pos->fingertable[i] << " ";
@@ -359,50 +348,164 @@ void Print(string key, long int n, nodeptr & chord){
 	cout << endl;
 }
 
-void Read(string filename, nodeptr & chord, int n){
+void Read(string filename, nodeptr & chord, int n, long int size){
 
 	ifstream file;
 	file.open(filename);
+	string line = "";
+	vector<string> vals;
+	string command = "";
+	string commandVal = "";
+	string value = "";
+	
+	bool ignore = false;
+	bool first = true;
+	
+	int commandID = -1;
+	
 	if(file.fail()){
 		file.clear();
 		file.close();
 		return;
 	}else {
-		
+		while(!file.eof()){
+			getline(file,line);
+			vals = split(line, ' ');
+			for (std::vector<string>::iterator it = vals.begin(); it != vals.end(); ++it){
+				if(first){
+					command = *it;
+					commandID = check_command(command);
+					first = false;
+				}else {
+					value = *(it);
+					if(!ignore){
+						if(value[0] == '#'){
+							ignore = true;
+						}else if(commandID == -1){
+							ignore = true;
+						}
+						if(!ignore){
+							construct_command(commandID, value, commandVal);
+						}
+					}
+				}
+			}
+			
+			if(commandID != -1){
+				execute_command(commandID, commandVal, chord, n, size);
+			}
+			commandID = -1;
+			first = true;
+			ignore = false;
+			commandVal = "";
+			vals.clear();
+
+		}
 	}
 	
-	file.close();
+	file.close();	
+}
+
+void execute_command(int commandID, string commandVal, nodeptr & chord, int n, long int size){
+
+	long int ID;
+	
+	switch(commandID){
+		// initchord
+		case 0:
+			ID = stol(commandVal);
+			InitChord(size, ID, n, chord);
+		break;
+		
+		// addpeer
+		case 1:
+			ID = stol(commandVal);
+			AddPeer(ID, n, chord);
+		break;
+		
+		// removepeer		
+		case 2:
+			ID = stol(commandVal);
+			RemovePeer(ID, n, chord);
+		break;
+		
+		// insert peer
+		case 3:
+			Insert(commandVal, n, chord);
+		break;
+		
+		// print node value
+		case 4:
+			ID = stol(commandVal);
+			Print(ID, n, chord);
+		break;
+		
+		case 5:
+			Delete(commandVal, n, chord);
+		break;
+
+	}
 	
 }
 
-void findnodeInfo(long int ID, nodeptr & pos, nodeptr & chord){
-	
-	bool loop = true;
-	nodeptr cur = chord;
+int check_command(string val){
 
-	while(loop){
-		
-		if(cur->ID >= ID){
-			if(cur->next != NULL){
-				if(cur->next->ID >= ID){
-					pos = cur;
-					break;
-				}
-			}else {
-				pos = cur;
-				break;
-			}
-		}
-		
-		
-		if(cur->next == NULL){
-			loop = false;
-		}else {
-			cur = cur->next;
-		}
+	if(val == "initchord"){
+		return 0;
 	}
+	if(val == "addpeer"){
+		return 1;
+	}
+	if(val == "removepeer"){
+		return 2;
+	}
+	if(val == "insert"){
+		return 3;
+	}
+	if(val == "print"){
+		return 4;
+	}
+	if(val == "delete"){
+		return 5;
+	}
+
+	return -1;
+}
+
+void construct_command(int commandID, string value, string & commandVal){
 	
+	switch(commandID){
 	
+		case 0:
+		case 1:
+		case 2:
+		case 4:
+			commandVal = value;
+		break;
+		
+		case 3:
+		case 5:
+			if(commandVal.length() > 0){
+				commandVal = commandVal + " " + value;
+			}else {
+				commandVal = value;
+			}
+		break;
+	}
+
+}
+
+
+vector<string> split(const string &s, char delim) {
+
+    stringstream ss(s);
+    string item;
+    vector<string> tokens;
+    while (getline(ss, item, delim)) {
+        tokens.push_back(item);
+    }
+    return tokens;
+    
 }
 
 // move a deleted resource
@@ -430,20 +533,18 @@ void moveDeletedResource(nodeptr & cur, nodeptr & chord, long int ID, bool addPe
 
 void returnPeer(nodeptr & positionPointer, nodeptr & chord, long int ID){
 	
-	nodeptr cur = chord;
+	positionPointer = chord;
 	bool loop = true;
-	bool found = false;
 	
 	while(loop){
 
-		if(cur->ID == ID){
-			positionPointer = cur;
+		if(positionPointer->ID == ID){
 			break;
 		}
-		if(cur->next == NULL){
+		if(positionPointer->next == NULL){
 			loop = false;
 		}else {
-			cur = cur->next;
+			positionPointer = positionPointer->next;
 		}	
 	}
 	
@@ -514,7 +615,7 @@ void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, long int size)
 
 // add the resource to the designated node
 
-void Insert(string key, int n, nodeptr & chord, long int size) {
+void Insert(string key, int n, nodeptr & chord) {
 
 	long int hashid = Hash(n, key);
 	nodeptr cur = chord;
@@ -543,7 +644,7 @@ void Insert(string key, int n, nodeptr & chord, long int size) {
 				found = true;
 			}else {
 			
-				for(int i = 0; i < size; i++){
+				for(int i = 0; i < n; i++){
 					if(cur->fingertable[i] >= hashid){
 						store = cur->fingertable[i];
 						found = true;
