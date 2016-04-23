@@ -49,13 +49,12 @@ void InitChord(long int n, long int ID, int size, nodeptr & chord){
 /******* ADD PEER FUNCTION ********/
 void AddPeer(long int ID, long int size, nodeptr & chord){
 	
-	bool greater = false;
-	bool ignore = false;
+	bool greater = false, ignore = false;
 	int counter = 0;
 	nodeptr tmp = createNode(ID, size);
-	string path;
 	nodeptr cur = chord;
-	nodeptr store = NULL, pres;
+	nodeptr pres;
+	string path;
 	long int prev = 0;
 	
 	cout << "PEER " << ID << " ADDED" << endl;
@@ -100,60 +99,12 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 			}
 			
 			if(greater){
-				
-				// if the greater node is after the starting node
-				if(cur->prev != NULL){
-					store = cur->prev;
-					cur->prev = tmp;
-					tmp->prev = store;
-					store->next = tmp;
-					tmp->next = cur;
- 
-					pres = store->next;
-
-					cout << ">" << tmp->ID;
-				}else {
-				
-					// copy the node
-					nodeptr mine = chord;
-					chord = tmp;
-					chord->next = mine;
-					mine->prev = chord;
-					
-					cout << chord->ID << ">" << mine->ID;
-					pres = chord;
-				}
+				greaterIndexSwap(cur, chord, tmp, pres);
 			}else{
-				cur->next = tmp;
-				tmp->prev = cur;
-				
-				// store the new node
-				pres = cur->next;
-				cout << ">" << cur->ID;
+				simpleIndexSwap(cur, tmp, pres);
 			}
 		}else {
-
-			if(cur->ID > ID){
-
-				store = chord;
-				chord = tmp;
-			
-				chord->next = store;
-				chord->prev = NULL;
-				store->prev = chord;
-				store->next = NULL;
-				
-				pres = store;
-				
-				cout << chord->ID << ">" << chord->next->ID;
-				
-			}else {
-				chord->next = tmp;
-				tmp->prev = chord;
-				
-				pres = chord->next;
-				cout << chord->ID << ">" << pres->ID;
-			}
+			lesserIndexSwap(ID, cur, chord, pres, tmp);
 		}
 	
 	}
@@ -224,7 +175,7 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 				chord->prev = NULL;
 				
 				storeBack = chord;
-				fingerTable(storeBack, chord, ID, size);					
+				fingerTable(storeBack, chord, ID, size);				
 			}
 		}else {
 			// the last node
@@ -398,12 +349,8 @@ void Read(string filename, nodeptr & chord, int n, long int size){
 	file.open(filename);
 	string line = "";
 	vector<string> vals;
-	string command = "";
-	string commandVal = "";
-	string value = "";
-	
-	bool ignore = false;
-	bool first = true;
+	string command = "", commandVal = "", value = "";
+	bool ignore = false, first = true;
 	
 	int commandID = -1;
 	
@@ -800,6 +747,111 @@ nodeptr createNode(long int ID, long int size){
 	tmp->ID = ID;
 	tmp->fingertable = new long int[size];
 	
-	return tmp;
+	return tmp;	
+}
+
+/******* ADD NODE SWAP: GREATER THAN FUNCTION ********/
+
+void greaterIndexSwap(nodeptr & cur, nodeptr & chord, nodeptr & tmp, nodeptr & pres){
 	
+	nodeptr store = NULL;
+	
+	// if the greater node is after the starting node
+	if(cur->prev != NULL){
+		store = cur->prev;
+		cur->prev = tmp;
+		tmp->prev = store;
+		store->next = tmp;
+		tmp->next = cur;
+
+		pres = store->next;
+
+		cout << ">" << tmp->ID;
+	}else {
+	
+		// copy the node
+		nodeptr mine = chord;
+		chord = tmp;
+		chord->next = mine;
+		mine->prev = chord;
+		
+		cout << chord->ID << ">" << mine->ID;
+		pres = chord;
+	}	
+}
+
+/******* ADD NODE SWAP: LESS THAN FUNCTION ********/
+
+void lesserIndexSwap(long int ID, nodeptr & cur, nodeptr & chord, nodeptr & pres, nodeptr & tmp){
+
+	nodeptr store = NULL;
+	
+	if(cur->ID > ID){
+
+		store = chord;
+		chord = tmp;
+	
+		chord->next = store;
+		chord->prev = NULL;
+		store->prev = chord;
+		store->next = NULL;
+		
+		pres = store;
+		
+		cout << chord->ID << ">" << chord->next->ID;
+		
+	}else {
+		chord->next = tmp;
+		tmp->prev = chord;
+		
+		pres = chord->next;
+		cout << chord->ID << ">" << pres->ID;
+	}
+}
+
+/******* ADD NODE SWAP: SIMPLE CHANGE FUNCTION ********/
+void simpleIndexSwap(nodeptr & cur, nodeptr & tmp, nodeptr & pres){
+
+	cur->next = tmp;
+	tmp->prev = cur;
+	
+	// store the new node
+	pres = cur->next;
+	cout << ">" << cur->ID;
+}
+
+
+
+
+
+
+
+void outputChord(nodeptr & chord, long int n){
+	
+	nodeptr cur = chord;
+
+	cout << "=========================================================" << endl;	
+	while(cur->next != NULL){
+
+	cout << "**************** CUR ID: " << cur->ID << " ****************" << endl;
+	cout << "=========================================================" << endl;
+		for(int i = 0; i < n; i++){		
+			cout<< "[ " << i + 1 << " ] [ " << cur->fingertable[i] << " ] " << endl;
+		}
+		
+		cout << "RESOURCES" << endl;
+		outputResources(cur);
+		
+		cout << "=========================================================" << endl;
+		cur = cur->next;
+	}
+			cout << "=========================================================" << endl;
+	cout << "**************** CUR ID: " << cur->ID << "****************" << endl;
+		for(int i = 0; i < n; i++){		
+			cout<< "[ " << i + 1 << " ] [ " << cur->fingertable[i] << " ] " << endl;
+		}
+		
+		cout << "RESOURCES" << endl;
+		outputResources(cur);
+	cout << "=========================================================" << endl;
 }

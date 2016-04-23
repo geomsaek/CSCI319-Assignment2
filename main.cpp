@@ -27,6 +27,8 @@ int main(int argc, char *argv[]){
 		if(file.length() > 0){
 			Read(file, chord, n, size);
 		}
+		
+		outputChord(chord, n);
 	}
 
 	return 0;
