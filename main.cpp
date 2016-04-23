@@ -36,13 +36,13 @@ int main(){
 	outputChord(chord, n);*/
 	
 	
-//	Read("myfile.dat", nodeptr & chord, int n);
+	Read("myfile.dat", nodeptr & chord, int n);
 
-	InitChord(size, 5, n, chord);
-	AddPeer(7, n, chord);
-	AddPeer(3, n, chord);
-	RemovePeer(3, n, chord);
-	AddPeer(12, n, chord);
+// 	InitChord(size, 8, n, chord);
+// 	AddPeer(7, n, chord);
+// 	AddPeer(3, n, chord);
+// 	RemovePeer(3, n, chord);
+// 	AddPeer(12, n, chord);
 	
 
 //	AddPeer(3, n, chord);

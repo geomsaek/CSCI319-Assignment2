@@ -243,7 +243,7 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 		delete chord;
 		chord = NULL;
 	}else {
-			
+		
 		// if another node is removed
 		while(cur->next != NULL){
 			if(storeID >= cur->ID){
@@ -266,18 +266,30 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 			}
 			cur = cur->next;	
 		}
+		
 		moveDeletedResource(cur, chord, ID, false);
 		
 		// if the node is found within the list
 		if(found){
-			store = cur->next;
-			storeBack = cur->prev;
-			delete cur;
-			store->prev = storeBack;
-			storeBack->next = store;
 			
-
-			fingerTable(storeBack, chord, ID, size);
+			if(cur->prev != NULL){
+				store = cur->next;
+				storeBack = cur->prev;
+				delete &cur;
+				store->prev = storeBack;
+				storeBack->next = store;
+				
+				fingerTable(storeBack, chord, ID, size);
+			}else {
+				store = chord->next;				
+				chord->resource.clear();
+				delete chord;
+				chord = store;
+				chord->prev = NULL;
+				
+				storeBack = chord;
+				fingerTable(storeBack, chord, ID, size);					
+			}
 		}else {
 			// the last node
 			store = cur->prev;
