@@ -35,7 +35,6 @@ void InitChord(int n, long int size, long int ID, nodeptr & chord){
 	}else {
 		nodeptr tmp = createNode(ID, n);
 		string path;
-		cout << "NB: " << n << endl;
 		for(int i = 0; i < n; i++){
 			tmp->fingertable[i] = tmp->ID;
 		}
