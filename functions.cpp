@@ -12,6 +12,8 @@
 #include<map>
 #include<vector>
 #include<string>
+#include<stdio.h>
+#include<stdlib.h>
 #include<fstream>
 #include<sstream>
 #include "functions.h"
@@ -19,20 +21,22 @@ using namespace std;
 
 
 //
-//		REQUIRED FUNCTIONS
+//
+// REQUIRED FUNCTIONS
 //
 //
 
 /******* INITIALISE CHORD FUNCTION ********/
 // where n = chord size
-void InitChord(long int n, long int ID, int size, nodeptr & chord){
+void InitChord(int n, long int size, long int ID, nodeptr & chord){
 	
 	if(chord != NULL){
-		reinitialise(chord, n, ID, size);
+		reinitialise(chord, size, n);
 	}else {
-		nodeptr tmp = createNode(ID, size);
+		nodeptr tmp = createNode(ID, n);
 		string path;
-		for(int i = 0; i < size; i++){
+		cout << "NB: " << n << endl;
+		for(int i = 0; i < n; i++){
 			tmp->fingertable[i] = tmp->ID;
 		}
 	
@@ -41,17 +45,16 @@ void InitChord(long int n, long int ID, int size, nodeptr & chord){
 		cout << "3284165" << endl;
 		path = convertToString(chord->ID);
 		cout << path << ">" << path << endl;
-	
 		fingerTable(chord, chord, ID, size);
 	}
 }
 
 /******* ADD PEER FUNCTION ********/
-void AddPeer(long int ID, long int size, nodeptr & chord){
+void AddPeer(long int ID, int n, nodeptr & chord){
 	
 	bool greater = false, ignore = false;
 	int counter = 0;
-	nodeptr tmp = createNode(ID, size);
+	nodeptr tmp = createNode(ID, n);
 	nodeptr cur = chord;
 	nodeptr pres;
 	string path;
@@ -109,7 +112,7 @@ void AddPeer(long int ID, long int size, nodeptr & chord){
 	
 	}
 
-	fingerTable(pres, chord, ID, size);
+	fingerTable(pres, chord, ID, n);
 	checkAddedPeers(pres, chord);
 	cout << endl;
 
@@ -202,19 +205,15 @@ unsigned int Hash (string datastring, long int n) {
 
 	long int key = 0;
 	int len = datastring.length();
+	long int temp = 0;
 
 	// provided algorithm
 	for(int i = 0; i < len; i++){
 		key = ((key << 5) + key) ^ datastring[i];
 	}
 
-	long int result = pow(n);
-	
-	key = key % result;
-	if(key < 0){
-		key += result;
-	}
-	
+	key = key & (pow(n) -1);
+
 	return key;
 }
 
@@ -275,7 +274,7 @@ void Insert(string key, int n, nodeptr & chord) {
 }
 
 /******* DELETE FUNCTION ********/
-void Delete(string hash, long int n, nodeptr & chord){
+void Delete(string hash, int n, nodeptr & chord){
 	
 	long int nodeID = FindKey(hash, n, chord);
 	long int hashid = Hash(hash,n);
@@ -288,12 +287,13 @@ void Delete(string hash, long int n, nodeptr & chord){
 	returnPeer(pos, chord, nodeID);
 	
 	for (it=pos->resource.begin(); it!=pos->resource.end();){
+
 		if(hashid == (*it).first){
 			temp = it;
 			++temp;
 
 			cout << "REMOVED " << (*it).second << "(key=" << (*it).first << ") FROM " << pos->ID << endl;
-			it = pos->resource.erase(it);
+			pos->resource.erase(it);
 			it = temp;
 		}else {
 			 ++it;
@@ -302,7 +302,7 @@ void Delete(string hash, long int n, nodeptr & chord){
 }
 
 /******* PRINT FUNCTION ********/
-void Print(long int ID, long int n, nodeptr & chord){
+void Print(long int ID, int n, nodeptr & chord){
 	
 	long int hashid;
 	nodeptr pos;
@@ -321,10 +321,12 @@ void Print(long int ID, long int n, nodeptr & chord){
 }
 
 /******* READ FUNCTION ********/
-void Read(string filename, nodeptr & chord, int n, long int size){
+void Read(string filename, nodeptr & chord, int & n, long int & size){
 
 	ifstream file;
-	file.open(filename);
+	const char * name = filename.c_str();
+	const char * temp;
+	file.open(name);
 	string line = "";
 	vector<string> vals;
 	string command = "", commandVal = "", value = "";
@@ -361,6 +363,14 @@ void Read(string filename, nodeptr & chord, int n, long int size){
 			}
 			
 			if(commandID != -1){
+				if(commandID == 0){
+					temp = commandVal.c_str();
+					n = atol(temp);
+					size = pow(n);
+					if(n > 32 || n < 0){
+						return;
+					}
+				}
 				execute_command(commandID, commandVal, chord, n, size);
 			}
 			commandID = -1;
@@ -377,17 +387,26 @@ void Read(string filename, nodeptr & chord, int n, long int size){
 
 
 //
-//		HELPER FUNCTIONS
+// HELPER FUNCTIONS
 //
 //
 
 /******* POWER OF FUNCTION ********/
 long int pow(int n){
 
-	long int size = n;
-	long result;	
+	int size = n;
+	int type = 0;
+	long int result;
+	if(size > 30){
+		size = 30;
+		if(size == 31){
+			type = 1;
+		}else if(size == 32){
+			type = 2;
+		}
+	}
 	result = 1 << size;
-	
+	result = result << type;
 	return result;
 }
 
@@ -479,14 +498,18 @@ void checkAddedPeers(nodeptr & newNode, nodeptr & chord){
 		if(!cur->resource.empty()){
 
 			for (it=cur->resource.begin(); it!=cur->resource.end();){
+
 				if(cur->ID <= (*it).first){
 
+
 					if(newNode->ID >= (*it).first){
+
 						temp = it;
+
 						++temp;
+
 						newNode->resource.insert(pair<long int, string>((*it).first, (*it).second));
-						
-						it = cur->resource.erase(it);
+						cur->resource.erase(it);
 						it = temp;
 						mod = true;
 					}else {
@@ -512,26 +535,25 @@ void checkAddedPeers(nodeptr & newNode, nodeptr & chord){
 }
 
 /******* REINITIALISE CHORD FUNCTION ********/
-void reinitialise(nodeptr & chord, long int chordSize, long int ID, int size){
+void reinitialise(nodeptr & chord, long int size, int n){
 	
 	nodeptr temp;
 		
-		while(chord->next != NULL){
-		
-			temp = chord;
-			chord = chord->next;
-			delete [] temp->fingertable;
-			temp->resource.clear();
-			delete temp;
-		}
-		
-		delete [] chord->fingertable;
-		chord->resource.clear();
-		delete chord;
+	while(chord->next != NULL){
+	
+		temp = chord;
+		chord = chord->next;
+		delete [] temp->fingertable;
+		temp->resource.clear();
+		delete temp;
+	}
+	
+	delete [] chord->fingertable;
+	chord->resource.clear();
+	delete chord;
 
-		chord = NULL;
-		
-		InitChord(chordSize, ID, size, chord);	
+	chord = NULL;
+	InitChord(n, size, 0, chord);
 }
 
 /******* SPLIT STRING FUNCTION ********/
@@ -602,23 +624,25 @@ void construct_command(int commandID, string value, string & commandVal){
 void execute_command(int commandID, string commandVal, nodeptr & chord, int n, long int size){
 
 	long int ID;
+	const char * temp;
 	
 	switch(commandID){
 		// initchord
 		case 0:
-			ID = stol(commandVal);
-			InitChord(size, ID, n, chord);
+			InitChord(size, n, 0, chord);
 		break;
 		
 		// addpeer
 		case 1:
-			ID = stol(commandVal);
+			temp = commandVal.c_str();
+			ID = atol(temp);
 			AddPeer(ID, n, chord);
 		break;
 		
 		// removepeer		
 		case 2:
-			ID = stol(commandVal);
+			temp = commandVal.c_str();
+			ID = atol(temp);
 			RemovePeer(ID, n, chord);
 		break;
 		
@@ -629,7 +653,8 @@ void execute_command(int commandID, string commandVal, nodeptr & chord, int n, l
 		
 		// print node value
 		case 4:
-			ID = stol(commandVal);
+			temp = commandVal.c_str();
+			ID = atol(temp);
 			Print(ID, n, chord);
 		break;
 		
@@ -654,18 +679,18 @@ template <typename T> string convertToString(T val){
 
 /******* FINGER TABLE FUNCTION ********/
 // populate the finger table for the current node
-void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, long int size){
+void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, int n){
 
 	nodeptr backwardCur = curNode, forward, start;
 	long int curPeerID;
-	long int chordsize = pow(size);
+	long int chordsize = pow(n);
 	long int overflow = 0;
 	bool innerLoop = true, loop = true, find = false;
 	int fingerIndex = 0;
 
 	while(loop){
 
-		for(int i = 0; i < size; i++){
+		for(int i = 0; i < n; i++){
 			forward = backwardCur;
 			fingerIndex = i + 1;
 			fingerIndex = fingerIndex - 1;
@@ -717,13 +742,13 @@ void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, long int size)
 
 /******* CREATE NODE FUNCTION ********/
 // create a new node
-nodeptr createNode(long int ID, long int size){
+nodeptr createNode(long int ID, int n){
 
 	nodeptr tmp = new node;
 	tmp->next = NULL;
 	tmp->prev = NULL;
 	tmp->ID = ID;
-	tmp->fingertable = new long int[size];
+	tmp->fingertable = new long int[n];
 	
 	return tmp;	
 }

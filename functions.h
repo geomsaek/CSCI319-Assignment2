@@ -28,15 +28,15 @@ struct node {
 
 // required functions
 
-void InitChord(long int n, long int ID, int size, nodeptr & chord);
-void AddPeer(long int ID, long int n, nodeptr & chordsys);
+void InitChord(int n, long int size, long int ID, nodeptr & chord);
+void AddPeer(long int ID, int n, nodeptr & chordsys);
 void RemovePeer(long int ID, long int size, nodeptr & chord);
 long int FindKey(string key, long int n, nodeptr & chord);
 unsigned int Hash (string dataitem, long int n);
 void Insert(string key, int n, nodeptr & chord);
-void Delete(string hash, long int n, nodeptr & chord);
-void Print(string key, long int n, nodeptr & chord);
-void Read(string filename, nodeptr & chord, int n, long int size);
+void Delete(string hash, int n, nodeptr & chord);
+void Print(string key, int n, nodeptr & chord);
+void Read(string filename, nodeptr & chord, int & n, long int & size);
 
 
 // additional functions
@@ -47,14 +47,14 @@ void moveDeletedResource(nodeptr & cur, nodeptr & chord, long int ID, bool addPe
 void outputResources(nodeptr & cur);
 void returnPeer(nodeptr & positionPointer, nodeptr & chord, long int ID);
 void checkAddedPeers(nodeptr & newNode, nodeptr & chord);
-void reinitialise(nodeptr & chord, long int chordSize, long int ID, int size);
+void reinitialise(nodeptr & chord, long int size, int n);
 vector<string> split(const string &s, char delim);
 int check_command(string val);
 void construct_command(int commandID, string value, string & commandVal);
 void execute_command(int commandID, string commandVal, nodeptr & chord, int n, long int size);
 template <typename T> string convertToString(T val);
-void fingerTable(nodeptr & curPeer, nodeptr & chord, long int ID, long int size);
-nodeptr createNode(long int ID, long int size);
+void fingerTable(nodeptr & curPeer, nodeptr & chord, long int ID, int n);
+nodeptr createNode(long int ID, int n);
 void greaterIndexSwap(nodeptr & cur, nodeptr & chord, nodeptr & tmp, nodeptr & pres);
 void lesserIndexSwap(long int ID, nodeptr & cur, nodeptr & chord, nodeptr & pres, nodeptr & tmp);
 void simpleIndexSwap(nodeptr & cur, nodeptr & tmp, nodeptr & pres);
