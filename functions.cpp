@@ -158,54 +158,40 @@ unsigned int Hash (string datastring, long int n) {
 void Insert(string key, int n, nodeptr & chord) {
 
 	long int hashid = Hash(key,n);
-	nodeptr cur = chord;
+	nodeptr cur;
 	long int store = chord->ID;
 	bool loop = true, found = false, storeRes = false;
 	
 	string path;
 	int count = 0;
+	long int diffA = 0, diffB =0;
 	
-	while(loop){
-		
-		if(count == 0){
-			path = convertToString(cur->ID);
-		}else {
-			path = path + ">" + convertToString(cur->ID);
-		}
+	found = findPeer(chord, cur, n, hashid, false);
+	cout << path <<endl;
+	if(found){
+		cout << "FOUND: " << cur->ID << "--- hashid: " << hashid << "---- " << key << endl;
+	}else {
 
-		if(cur->ID >= hashid){
-
-			store = cur->ID;
-			cur->resource.insert(pair<long int, string>(hashid, key));
-			cout << "INSERTED " << key << " (key=" << hashid << ") AT " << store << endl;
-			storeRes = true;
-			loop = false;
-			found = true;
-		}else {
-		
-			for(int i = 0; i < n; i++){
-				if(cur->fingertable[i] >= hashid){
-					store = cur->fingertable[i];
-					found = true;
-					storeRes = false;
-					break;
-				}
+		if(cur->next != NULL){
+			
+			getDifference(diffA, diffB, hashid, cur->ID, cur->next->ID);
+			if((diffA) < (diffB)){
+				cur->resource.insert(pair<long int, string>(hashid, key));
+				cout << "INSERTED " << key << " (key=" << hashid << ") AT " << cur->ID << endl;
+// 				cout << "ISNERT TO: " << cur->ID << "------- hashid: " << hashid << "---- " << key << endl;
+			}else {
+				cur->next->resource.insert(pair<long int, string>(hashid, key));
+				cout << "INSERTED " << key << " (key=" << hashid << ") AT " << cur->next->ID << endl;
+// 				cout << "ISNERT TO: " << cur->next->ID << "------- hashid: " << hashid << "---- " << key << endl;
 			}
+			
+		}else {
+			chord->resource.insert(pair<long int, string>(hashid, key));
+			cout << "INSERTED " << key << " (key=" << hashid << ") AT " << chord->ID << endl;
+// 			cout << "ISNERT TO: " << cur->ID << "------- hashid: " << hashid << "---- " << key << endl;
 		}
 		
-		if(cur->next == NULL){
-			loop = false;
-		}else {
-			cur = cur->next;
-		}
-		count = 1;
-	}
-
-	if(!found){
-		chord->resource.insert(pair<long int, string>(hashid, key));
-		cout << "INSERTED " << key << " (key=" << hashid << ") AT " << chord->ID << endl;
-	}
-	cout << path <<endl;	
+	}	
 }
 
 /******* DELETE FUNCTION ********/
