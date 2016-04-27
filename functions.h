@@ -30,7 +30,7 @@ struct node {
 
 void InitChord(int n, long int size, long int ID, nodeptr & chord);
 void AddPeer(long int ID, int n, nodeptr & chordsys);
-void RemovePeer(long int ID, long int size, nodeptr & chord);
+void RemovePeer(long int ID, int n, nodeptr & chord);
 long int FindKey(string key, long int n, nodeptr & chord);
 unsigned int Hash (string dataitem, long int n);
 void Insert(string key, int n, nodeptr & chord);

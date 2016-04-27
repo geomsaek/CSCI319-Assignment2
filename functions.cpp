@@ -59,7 +59,6 @@ void AddPeer(long int ID, int n, nodeptr & chord){
 	long int prev = 0;
 	
 	cout << "PEER " << ID << " ADDED" << endl;
-
 	findPeer(chord, cur, n, ID, false);
 	if(ID > cur->ID){
 		
@@ -87,52 +86,21 @@ void AddPeer(long int ID, int n, nodeptr & chord){
 }
 
 /******* REMOVE PEER FUNCTION ********/
-void RemovePeer(long int ID, long int size, nodeptr & chord){
+void RemovePeer(long int ID, int n, nodeptr & chord){
 
 	cout << "PEER " << ID << " REMOVED" << endl;
 	nodeptr cur = chord;
 	nodeptr store, storeBack;
-	bool found = false;
+
+	findPeer(chord, cur, n, ID, false);
+	moveDeletedResource(cur, chord, ID, false);
 	
-	long int storeID = chord->ID;
-	
-	if(cur->next == NULL){
-		delete chord;
-		chord = NULL;
+	if(cur->next != NULL){
+		deleteGreaterIndex(cur, storeBack, chord);
+		fingerTable(storeBack, chord, ID, n);	
 	}else {
-		
-		// if another node is removed
-		while(cur->next != NULL){
-			if(storeID >= cur->ID){
-
-				if(cur->ID == ID){
-					store = cur;
-					found = true;
-					moveDeletedResource(cur, chord, ID, false);
-					if(cur->next != NULL){
-						cout << cur->next->ID << ">" << cur->next->fingertable[0];
-					}
-					break;
-				}else {
-					for(int i = 0; i < size; i++){
-						if(cur->fingertable[i] >= ID){
-							storeID = cur->fingertable[i];
-						}
-					}
-					cout << cur->ID << ">";
-				}
-			}
-			cur = cur->next;	
-		}
-
-		// if the node is found within the list
-		if(found){
-			deleteGreaterIndex(cur, storeBack, chord);
-			fingerTable(storeBack, chord, ID, size);
-		}else {
-			deleteLesserIndex(cur, store);
-			fingerTable(store, chord, ID, size);
-		}
+		deleteLesserIndex(cur, store);
+		fingerTable(store, chord, ID, n);
 	}
 	cout << endl;
 
