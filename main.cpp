@@ -30,8 +30,13 @@ int main(int argc, char *argv[]){
 		if(file.length() > 0){
 			Read(file, chord, n, size);
 		}
-		
-//		outputChord(chord, n);
+
+		outputChord(chord, n);
+
+//		nodeptr locate;
+//		bool test;
+// 		test = findPeer(chord, locate, n, 8);
+ 		
 	}
 
 	return 0;

@@ -55,8 +55,12 @@ void execute_command(int commandID, string commandVal, nodeptr & chord, int n, l
 template <typename T> string convertToString(T val);
 void fingerTable(nodeptr & curPeer, nodeptr & chord, long int ID, int n);
 nodeptr createNode(long int ID, int n);
-void greaterIndexSwap(nodeptr & cur, nodeptr & chord, nodeptr & tmp, nodeptr & pres);
-void lesserIndexSwap(long int ID, nodeptr & cur, nodeptr & chord, nodeptr & pres, nodeptr & tmp);
-void simpleIndexSwap(nodeptr & cur, nodeptr & tmp, nodeptr & pres);
 void deleteGreaterIndex(nodeptr & cur, nodeptr & storeBack, nodeptr & chord);
 void deleteLesserIndex(nodeptr & cur, nodeptr & store);
+
+bool findPeer(nodeptr & chord, nodeptr & locate, int n, long int ID, bool endline);
+void getDifference(long int & diffA, long int & diffB, long int searchID, long int curFingerVal, long int prevVal);
+bool checkMissingNode(nodeptr & cur, long int ID);
+
+
+void outputChord(nodeptr & chord, int n);

@@ -54,66 +54,35 @@ void AddPeer(long int ID, int n, nodeptr & chord){
 	bool greater = false, ignore = false;
 	int counter = 0;
 	nodeptr tmp = createNode(ID, n);
-	nodeptr cur = chord;
+	nodeptr cur;
 	nodeptr pres;
-	string path;
 	long int prev = 0;
 	
 	cout << "PEER " << ID << " ADDED" << endl;
-	
-	if(chord == NULL){
-		path = convertToString(chord->ID);
-		chord = tmp;
-		cout << path << ">" << path << endl;
-	}else {
 
+	findPeer(chord, cur, n, ID, false);
+	if(ID > cur->ID){
+		
 		if(cur->next != NULL){
-			
-			path = convertToString(chord->ID);
-			while(cur->next != NULL){				
-
-				if(!ignore){
-
-					if(cur->ID >= ID){
-						greater = true;	
-						break;
-					}else {
-						if(counter == 0){
-							cout << cur->ID;
-						}else {
-							cout << ">" << cur->ID;
-						}
-						prev = cur->fingertable[0];
-						if(prev < ID){
-							ignore = true;
-						}
-					}
-				}else {
-					ignore= false;
-				}
-				cur = cur->next;
-				counter = 1;
-			}
-
-			// last comparison
-			if(cur->ID > ID){
-				greater = true;	
-			}
-			
-			if(greater){
-				greaterIndexSwap(cur, chord, tmp, pres);
-			}else{
-				simpleIndexSwap(cur, tmp, pres);
-			}
+			pres = cur->next;
+			cur->next = tmp;
+			tmp->prev = cur;
+			tmp->next = pres;
 		}else {
-			lesserIndexSwap(ID, cur, chord, pres, tmp);
-		}
-	
+			cur->next = tmp;
+			tmp->prev = cur;
+			pres = cur->next;
+		}	
+	}else {
+		pres = chord;
+		chord = tmp;
+		chord->next = pres;
+		pres->prev = chord;
 	}
+	cout << ">" << ID << endl;
 
 	fingerTable(pres, chord, ID, n);
 	checkAddedPeers(pres, chord);
-	cout << endl;
 
 }
 
@@ -139,6 +108,7 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 				if(cur->ID == ID){
 					store = cur;
 					found = true;
+					moveDeletedResource(cur, chord, ID, false);
 					if(cur->next != NULL){
 						cout << cur->next->ID << ">" << cur->next->fingertable[0];
 					}
@@ -154,9 +124,7 @@ void RemovePeer(long int ID, long int size, nodeptr & chord){
 			}
 			cur = cur->next;	
 		}
-		
-		moveDeletedResource(cur, chord, ID, false);
-		
+
 		// if the node is found within the list
 		if(found){
 			deleteGreaterIndex(cur, storeBack, chord);
@@ -308,7 +276,6 @@ void Print(long int ID, int n, nodeptr & chord){
 
 	returnPeer(pos, chord, ID);
 	
-	cout << "NODE: " << ID << endl;
 	cout << "DATA AT NODE " << ID << ":" << endl;
 	outputResources(pos);
 	cout << "FINGER TABLE OF NODE " << ID << endl;
@@ -680,7 +647,8 @@ template <typename T> string convertToString(T val){
 // populate the finger table for the current node
 void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, int n){
 
-	nodeptr backwardCur = curNode, forward, start;
+//	nodeptr backwardCur = curNode, forward, start;
+	nodeptr backwardCur = chord, forward, start;
 	long int curPeerID;
 	long int chordsize = pow(n);
 	long int overflow = 0;
@@ -730,11 +698,10 @@ void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, int n){
 			find = false;
 		}
 		
-		if(backwardCur->prev == NULL){
+		if(backwardCur->next == NULL){
 			loop = false;
 		}else {
-			// go backward to reconfigure the node
-			backwardCur = backwardCur->prev;
+			backwardCur = backwardCur->next;
 		}
 	}
 }
@@ -750,76 +717,6 @@ nodeptr createNode(long int ID, int n){
 	tmp->fingertable = new long int[n];
 	
 	return tmp;	
-}
-
-/******* ADD NODE SWAP: GREATER THAN FUNCTION ********/
-
-void greaterIndexSwap(nodeptr & cur, nodeptr & chord, nodeptr & tmp, nodeptr & pres){
-	
-	nodeptr store = NULL;
-	
-	// if the greater node is after the starting node
-	if(cur->prev != NULL){
-		store = cur->prev;
-		cur->prev = tmp;
-		tmp->prev = store;
-		store->next = tmp;
-		tmp->next = cur;
-
-		pres = store->next;
-
-		cout << ">" << tmp->ID;
-	}else {
-	
-		// copy the node
-		nodeptr mine = chord;
-		chord = tmp;
-		chord->next = mine;
-		mine->prev = chord;
-		
-		cout << chord->ID << ">" << mine->ID;
-		pres = chord;
-	}	
-}
-
-/******* ADD NODE SWAP: LESS THAN FUNCTION ********/
-
-void lesserIndexSwap(long int ID, nodeptr & cur, nodeptr & chord, nodeptr & pres, nodeptr & tmp){
-
-	nodeptr store = NULL;
-	
-	if(cur->ID > ID){
-
-		store = chord;
-		chord = tmp;
-	
-		chord->next = store;
-		chord->prev = NULL;
-		store->prev = chord;
-		store->next = NULL;
-		
-		pres = store;
-		
-		cout << chord->ID << ">" << chord->next->ID;
-		
-	}else {
-		chord->next = tmp;
-		tmp->prev = chord;
-		
-		pres = chord->next;
-		cout << chord->ID << ">" << pres->ID;
-	}
-}
-
-/******* ADD NODE SWAP: SIMPLE CHANGE FUNCTION ********/
-void simpleIndexSwap(nodeptr & cur, nodeptr & tmp, nodeptr & pres){
-
-	cur->next = tmp;
-	tmp->prev = cur;
-	
-	// store the new node
-	pres = cur->next;
-	cout << ">" << cur->ID;
 }
 
 /******* REMOVE NODE SWAP: GREATER THAN FUNCTION ********/
@@ -853,4 +750,139 @@ void deleteLesserIndex(nodeptr & cur, nodeptr & store){
 	cout << store->ID;
 	store->next = NULL;
 	delete cur;
+}
+
+// better way to find the node
+
+bool findPeer(nodeptr & chord, nodeptr & locate, int n, long int ID, bool endline=true){
+
+	nodeptr cur = chord;
+	bool ignore = false, found = false, initial = true, loop = true;
+	long int prev = -1, diffB = 0, diffA = 0, store = ID;
+	
+	while(loop){
+
+		if(checkMissingNode(cur, ID)){		
+			locate = cur;
+			if(initial){
+				initial = false;
+				cout << cur->ID;
+			}else {
+				cout << ">" << cur->ID;
+			}
+			break;
+		}
+		if(cur->ID == store || initial){
+
+			if(cur->ID == ID){
+				if(initial){
+					initial = false;
+					cout << cur->ID;
+				}else {
+					cout << ">" << cur->ID;
+				}
+				
+				locate = cur;
+				store = cur->ID;
+				found = true;
+				break;
+			}else {
+				if(initial){
+					cout << cur->ID;
+				}else {
+					cout << ">" << cur->ID;
+				}
+
+				for(int i = 0; i < n; i ++){
+
+					if(initial){
+						initial = false;
+						store = cur->fingertable[i];
+					}else {
+						getDifference(diffA, diffB, ID, cur->fingertable[i], prev);
+						
+						if(cur->fingertable[i] == ID){
+							store = cur->fingertable[i];
+							break;
+						}else if((diffA) < (diffB) && !(cur->fingertable[i] > ID)){
+							store = cur->fingertable[i];
+						}else {
+							if(cur->fingertable[i] > ID){
+								break;
+							}
+						}
+					}
+					prev = cur->fingertable[i];
+				}
+			}
+
+		}
+		
+		if(cur->next == NULL){
+			loop = false;
+		}else {
+			cur= cur->next;
+		}
+	}
+	
+	if(endline){
+	 	cout << endl;
+	 }
+ 	
+ 	return found;
+
+}
+
+void getDifference(long int & diffA, long int & diffB, long int searchID, long int curFingerVal, long int prevVal){
+
+	diffA = searchID - curFingerVal;
+	diffB = searchID - prevVal;
+	
+	if(diffA < 0){
+		diffA = diffA * -1;
+	}
+	if(diffB < 0){
+		diffB = diffB * -1;
+	}
+}
+
+bool checkMissingNode(nodeptr & cur, long int ID){
+
+	bool end = false;
+	
+	if(cur->next != NULL){
+		if(cur->ID != ID && cur->next->ID > ID){
+			end = true;
+		}
+	}else {
+		if(cur->ID < ID){
+			end = true;
+		}
+	}
+	
+	return end;
+}
+
+void outputChord(nodeptr & chord, int n) {
+
+	nodeptr cur = chord;
+	bool loop = true;
+	
+	while(loop){
+	
+		cout << "********************* NODE: " << cur->ID << " *********************" << endl;
+		for(int i = 0; i < n; i++){
+			cout << "[ " << i + 1 << " ][ " << cur->fingertable[i] << " ]" << endl;
+		}
+		cout << "RESOURCES" << endl;
+		outputResources(cur);
+		if(cur->next == NULL){
+			loop = false;
+		}else {
+			cur = cur->next;
+			cout << "***************************************************************" << endl;
+		}
+	}
+
+
 }
