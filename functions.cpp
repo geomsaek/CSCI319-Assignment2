@@ -242,7 +242,8 @@ void Print(long int ID, int n, nodeptr & chord){
 	long int hashid;
 	nodeptr pos;
 
-	returnPeer(pos, chord, ID);
+	findPeer(chord, pos, n, ID, false);
+	cout << endl;
 	
 	cout << "DATA AT NODE " << ID << ":" << endl;
 	outputResources(pos);
@@ -615,7 +616,6 @@ template <typename T> string convertToString(T val){
 // populate the finger table for the current node
 void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, int n){
 
-//	nodeptr backwardCur = curNode, forward, start;
 	nodeptr backwardCur = chord, forward, start;
 	long int curPeerID;
 	long int chordsize = pow(n);
@@ -732,34 +732,19 @@ bool findPeer(nodeptr & chord, nodeptr & locate, int n, long int ID, bool endlin
 
 		if(checkMissingNode(cur, ID)){		
 			locate = cur;
-			if(initial){
-				initial = false;
-				cout << cur->ID;
-			}else {
-				cout << ">" << cur->ID;
-			}
+			outputID(cur->ID, initial);
 			break;
 		}
 		if(cur->ID == store || initial){
 
 			if(cur->ID == ID){
-				if(initial){
-					initial = false;
-					cout << cur->ID;
-				}else {
-					cout << ">" << cur->ID;
-				}
-				
+				outputID(cur->ID, initial);
 				locate = cur;
 				store = cur->ID;
 				found = true;
 				break;
 			}else {
-				if(initial){
-					cout << cur->ID;
-				}else {
-					cout << ">" << cur->ID;
-				}
+				outputID(cur->ID, initial);
 
 				for(int i = 0; i < n; i ++){
 
@@ -799,6 +784,16 @@ bool findPeer(nodeptr & chord, nodeptr & locate, int n, long int ID, bool endlin
  	
  	return found;
 
+}
+
+void outputID(long int ID, bool & initial){
+
+	if(initial){
+		initial = false;
+		cout << ID;
+	}else {
+		cout << ">" << ID;
+	}
 }
 
 void getDifference(long int & diffA, long int & diffB, long int searchID, long int curFingerVal, long int prevVal){
