@@ -199,13 +199,12 @@ void Delete(string hash, int n, nodeptr & chord){
 	
 	long int nodeID = FindKey(hash, n, chord);
 	long int hashid = Hash(hash,n);
-	nodeptr cur = chord;
 	nodeptr pos;
 	
 	std::multimap<long int,string>::iterator it;
 	std::multimap<long int,string>::iterator temp;
 	
-	returnPeer(pos, chord, nodeID);
+	findPeer(chord, pos, n, nodeID, false);
 	
 	for (it=pos->resource.begin(); it!=pos->resource.end();){
 
