@@ -828,25 +828,3 @@ bool checkMissingNode(nodeptr & cur, long int ID){
 	
 	return end;
 }
-
-void outputChord(nodeptr & chord, int n) {
-
-	nodeptr cur = chord;
-	bool loop = true;
-	
-	while(loop){
-	
-		cout << "********************* NODE: " << cur->ID << " *********************" << endl;
-		for(int i = 0; i < n; i++){
-			cout << "[ " << i + 1 << " ][ " << cur->fingertable[i] << " ]" << endl;
-		}
-		cout << "RESOURCES" << endl;
-		outputResources(cur);
-		if(cur->next == NULL){
-			loop = false;
-		}else {
-			cur = cur->next;
-			cout << "***************************************************************" << endl;
-		}
-	}
-}

@@ -62,6 +62,3 @@ void outputID(long int ID, bool & initial);
 void storePathID(long int ID, bool & initial, string & path);
 void getDifference(long int & diffA, long int & diffB, long int searchID, long int curFingerVal, long int prevVal);
 bool checkMissingNode(nodeptr & cur, long int ID);
-
-
-void outputChord(nodeptr & chord, int n);
