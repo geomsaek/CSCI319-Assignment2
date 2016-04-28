@@ -452,17 +452,15 @@ void checkAddedPeers(nodeptr & newNode, nodeptr & chord){
 void reinitialise(nodeptr & chord, long int size, int n){
 	
 	nodeptr temp;
-		
+
 	while(chord->next != NULL){
 	
 		temp = chord;
 		chord = chord->next;
-		delete [] temp->fingertable;
 		temp->resource.clear();
 		delete temp;
 	}
-	
-	delete [] chord->fingertable;
+
 	chord->resource.clear();
 	delete chord;
 
