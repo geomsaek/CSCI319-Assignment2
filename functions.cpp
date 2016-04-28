@@ -56,10 +56,13 @@ void AddPeer(long int ID, int n, nodeptr & chord){
 	nodeptr tmp = createNode(ID, n);
 	nodeptr cur;
 	nodeptr pres;
+	string path = "";
 	long int prev = 0;
 	
 	cout << "PEER " << ID << " ADDED" << endl;
-	findPeer(chord, cur, n, ID, false);
+	
+	findPeer(chord, cur, n, ID, path, false);
+	cout << path << ">" << ID << endl;
 	if(ID > cur->ID){
 		
 		if(cur->next != NULL){
@@ -78,7 +81,6 @@ void AddPeer(long int ID, int n, nodeptr & chord){
 		chord->next = pres;
 		pres->prev = chord;
 	}
-	cout << ">" << ID << endl;
 
 	fingerTable(pres, chord, ID, n);
 	checkAddedPeers(pres, chord);
@@ -91,8 +93,10 @@ void RemovePeer(long int ID, int n, nodeptr & chord){
 	cout << "PEER " << ID << " REMOVED" << endl;
 	nodeptr cur = chord;
 	nodeptr store, storeBack;
+	string path = "";
 
-	findPeer(chord, cur, n, ID, false);
+	findPeer(chord, cur, n, ID, path, false);
+	cout << path << endl;
 	moveDeletedResource(cur, chord, ID, false);
 	
 	if(cur->next != NULL){
@@ -102,7 +106,6 @@ void RemovePeer(long int ID, int n, nodeptr & chord){
 		deleteLesserIndex(cur, store);
 		fingerTable(store, chord, ID, n);
 	}
-	cout << endl;
 
 }
 
@@ -162,36 +165,36 @@ void Insert(string key, int n, nodeptr & chord) {
 	long int store = chord->ID;
 	bool loop = true, found = false, storeRes = false;
 	
-	string path;
+	string path = "";
 	int count = 0;
 	long int diffA = 0, diffB =0;
 	
-	found = findPeer(chord, cur, n, hashid, false);
-	cout << path <<endl;
+	found = findPeer(chord, cur, n, hashid, path, false);
+	
 	if(found){
-		cout << "FOUND: " << cur->ID << "--- hashid: " << hashid << "---- " << key << endl;
+		cur->resource.insert(pair<long int, string>(hashid, key));
+		cout << "INSERTED " << key << " (key=" << hashid << ") AT " << cur->ID << endl;
 	}else {
-
+	
 		if(cur->next != NULL){
 			
 			getDifference(diffA, diffB, hashid, cur->ID, cur->next->ID);
 			if((diffA) < (diffB)){
 				cur->resource.insert(pair<long int, string>(hashid, key));
 				cout << "INSERTED " << key << " (key=" << hashid << ") AT " << cur->ID << endl;
-// 				cout << "ISNERT TO: " << cur->ID << "------- hashid: " << hashid << "---- " << key << endl;
 			}else {
 				cur->next->resource.insert(pair<long int, string>(hashid, key));
 				cout << "INSERTED " << key << " (key=" << hashid << ") AT " << cur->next->ID << endl;
-// 				cout << "ISNERT TO: " << cur->next->ID << "------- hashid: " << hashid << "---- " << key << endl;
 			}
 			
 		}else {
 			chord->resource.insert(pair<long int, string>(hashid, key));
 			cout << "INSERTED " << key << " (key=" << hashid << ") AT " << chord->ID << endl;
-// 			cout << "ISNERT TO: " << cur->ID << "------- hashid: " << hashid << "---- " << key << endl;
 		}
 		
 	}	
+	
+	cout << path << endl;
 }
 
 /******* DELETE FUNCTION ********/
@@ -200,11 +203,12 @@ void Delete(string hash, int n, nodeptr & chord){
 	long int nodeID = FindKey(hash, n, chord);
 	long int hashid = Hash(hash,n);
 	nodeptr pos;
+	string path = "";
 	
 	std::multimap<long int,string>::iterator it;
 	std::multimap<long int,string>::iterator temp;
 	
-	findPeer(chord, pos, n, nodeID, false);
+	findPeer(chord, pos, n, nodeID, path, false);
 	
 	for (it=pos->resource.begin(); it!=pos->resource.end();){
 
@@ -226,9 +230,9 @@ void Print(long int ID, int n, nodeptr & chord){
 	
 	long int hashid;
 	nodeptr pos;
+	string path = "";
 
-	findPeer(chord, pos, n, ID, false);
-	cout << endl;
+	findPeer(chord, pos, n, ID, path, false);
 	
 	cout << "DATA AT NODE " << ID << ":" << endl;
 	outputResources(pos);
@@ -238,6 +242,7 @@ void Print(long int ID, int n, nodeptr & chord){
 		cout << pos->fingertable[i] << " ";
 	}
 	cout << endl;
+	cout << path << endl;
 }
 
 /******* READ FUNCTION ********/
@@ -421,17 +426,15 @@ void checkAddedPeers(nodeptr & newNode, nodeptr & chord){
 
 				if(cur->ID <= (*it).first){
 
-
 					if(newNode->ID >= (*it).first){
 
 						temp = it;
-
 						++temp;
-
 						newNode->resource.insert(pair<long int, string>((*it).first, (*it).second));
 						cur->resource.erase(it);
 						it = temp;
 						mod = true;
+						
 					}else {
 						 ++it;
 					}
@@ -707,7 +710,7 @@ void deleteLesserIndex(nodeptr & cur, nodeptr & store){
 
 // better way to find the node
 
-bool findPeer(nodeptr & chord, nodeptr & locate, int n, long int ID, bool endline=true){
+bool findPeer(nodeptr & chord, nodeptr & locate, int n, long int ID, string & path, bool endline=true){
 
 	nodeptr cur = chord;
 	bool ignore = false, found = false, initial = true, loop = true;
@@ -715,21 +718,34 @@ bool findPeer(nodeptr & chord, nodeptr & locate, int n, long int ID, bool endlin
 	
 	while(loop){
 
-		if(checkMissingNode(cur, ID)){		
+		if(checkMissingNode(cur, ID)){
 			locate = cur;
-			outputID(cur->ID, initial);
+			if(endline){
+				outputID(cur->ID, initial);
+			}else {
+				storePathID(cur->ID, initial, path);
+			}
+			
 			break;
 		}
 		if(cur->ID == store || initial){
 
 			if(cur->ID == ID){
-				outputID(cur->ID, initial);
+				if(endline){
+					outputID(cur->ID, initial);
+				}else {
+					storePathID(cur->ID, initial, path);
+				}
 				locate = cur;
 				store = cur->ID;
 				found = true;
 				break;
 			}else {
-				outputID(cur->ID, initial);
+				if(endline){
+					outputID(cur->ID, initial);
+				}else {
+					storePathID(cur->ID, initial, path);
+				}
 
 				for(int i = 0; i < n; i ++){
 
@@ -778,6 +794,19 @@ void outputID(long int ID, bool & initial){
 		cout << ID;
 	}else {
 		cout << ">" << ID;
+	}
+}
+
+void storePathID(long int ID, bool & initial, string & path){
+
+	string temp = "";
+	
+	if(initial){
+		initial = false;
+		path = convertToString(ID);	
+	}else {
+		temp = convertToString(ID);
+		path = path + ">" + temp;
 	}
 }
 

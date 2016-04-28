@@ -58,8 +58,9 @@ nodeptr createNode(long int ID, int n);
 void deleteGreaterIndex(nodeptr & cur, nodeptr & storeBack, nodeptr & chord);
 void deleteLesserIndex(nodeptr & cur, nodeptr & store);
 
-bool findPeer(nodeptr & chord, nodeptr & locate, int n, long int ID, bool endline);
+bool findPeer(nodeptr & chord, nodeptr & locate, int n, long int ID, string & path, bool endline);
 void outputID(long int ID, bool & initial);
+void storePathID(long int ID, bool & initial, string & path);
 void getDifference(long int & diffA, long int & diffB, long int searchID, long int curFingerVal, long int prevVal);
 bool checkMissingNode(nodeptr & cur, long int ID);
 
