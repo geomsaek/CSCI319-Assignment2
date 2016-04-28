@@ -97,7 +97,7 @@ void RemovePeer(long int ID, int n, nodeptr & chord){
 
 	findPeer(chord, cur, n, ID, path, false);
 	cout << path << endl;
-	moveDeletedResource(cur, chord, ID, false);
+	moveDeletedResource(cur, chord, n, false);
 	
 	if(cur->next != NULL){
 		deleteGreaterIndex(cur, storeBack, chord);
@@ -136,7 +136,6 @@ long int FindKey(string key, long int n, nodeptr & chord){
 	return storeID;
 }
 
-
 /******* HASH FUNCTION ********/
 unsigned int Hash (string datastring, long int n) {
 
@@ -166,6 +165,7 @@ void Insert(string key, int n, nodeptr & chord) {
 	bool loop = true, found = false, storeRes = false;
 	
 	string path = "";
+	string temp = "";
 	int count = 0;
 	long int diffA = 0, diffB =0;
 	
@@ -179,12 +179,23 @@ void Insert(string key, int n, nodeptr & chord) {
 		if(cur->next != NULL){
 			
 			getDifference(diffA, diffB, hashid, cur->ID, cur->next->ID);
+	
 			if((diffA) < (diffB)){
-				cur->resource.insert(pair<long int, string>(hashid, key));
-				cout << "INSERTED " << key << " (key=" << hashid << ") AT " << cur->ID << endl;
+				if(cur->ID < hashid){
+					cur->next->resource.insert(pair<long int, string>(hashid, key));
+					cout << "INSERTED " << key << " (key=" << hashid << ") AT " << cur->next->ID << endl;
+					temp = convertToString(cur->next->ID);
+				}else {
+					temp = convertToString(cur->ID);
+					cur->resource.insert(pair<long int, string>(hashid, key));
+					cout << "INSERTED " << key << " (key=" << hashid << ") AT " << cur->ID << endl;
+				}
+				path = path + ">" + temp;
 			}else {
+				temp = convertToString(cur->next->ID);
 				cur->next->resource.insert(pair<long int, string>(hashid, key));
 				cout << "INSERTED " << key << " (key=" << hashid << ") AT " << cur->next->ID << endl;
+				path = path + ">" + temp;
 			}
 			
 		}else {
@@ -355,7 +366,7 @@ bool check_resource(nodeptr & chord, long int hashid){
 }
 
 /******* MOVE DELETED RESOURCE FUNCTION ********/
-void moveDeletedResource(nodeptr & cur, nodeptr & chord, long int ID, bool addPeer){
+void moveDeletedResource(nodeptr & cur, nodeptr & chord, int n, bool addPeer){
 
 	bool loop = true;
 	long int prev = 0;
@@ -365,14 +376,14 @@ void moveDeletedResource(nodeptr & cur, nodeptr & chord, long int ID, bool addPe
 
 	nodeptr search = NULL;
 	long int nextID = cur->fingertable[0];
-	
+	string path = "";
 	
 	if(!cur->resource.empty()){
 	
 		for (it=cur->resource.begin(); it!=cur->resource.end(); ++it){
-
-				returnPeer(search, chord, nextID);
-				search->resource.insert(pair<long int, string>((*it).first, (*it).second));
+		
+			findPeer(chord, search, n, nextID, path, false);
+			search->resource.insert(pair<long int, string>((*it).first, (*it).second));
 		}
 	}
 }
@@ -386,26 +397,6 @@ void outputResources(nodeptr & cur){
 	
 	 for (it=cur->resource.begin(); it!=cur->resource.end(); ++it)
 	    std::cout << (*it).first << " => " << (*it).second << '\n';
-	
-}
-
-/******* RETURN PEER FUNCTION ********/
-void returnPeer(nodeptr & positionPointer, nodeptr & chord, long int ID){
-	
-	positionPointer = chord;
-	bool loop = true;
-	
-	while(loop){
-
-		if(positionPointer->ID == ID){
-			break;
-		}
-		if(positionPointer->next == NULL){
-			loop = false;
-		}else {
-			positionPointer = positionPointer->next;
-		}	
-	}
 	
 }
 
@@ -860,6 +851,4 @@ void outputChord(nodeptr & chord, int n) {
 			cout << "***************************************************************" << endl;
 		}
 	}
-
-
 }

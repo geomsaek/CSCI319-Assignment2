@@ -43,9 +43,8 @@ void Read(string filename, nodeptr & chord, int & n, long int & size);
 
 long int pow(int);
 bool check_resource(nodeptr & chord, long int hashid);
-void moveDeletedResource(nodeptr & cur, nodeptr & chord, long int ID, bool addPeer);
+void moveDeletedResource(nodeptr & cur, nodeptr & chord, int n, bool addPeer);
 void outputResources(nodeptr & cur);
-void returnPeer(nodeptr & positionPointer, nodeptr & chord, long int ID);
 void checkAddedPeers(nodeptr & newNode, nodeptr & chord);
 void reinitialise(nodeptr & chord, long int size, int n);
 vector<string> split(const string &s, char delim);
