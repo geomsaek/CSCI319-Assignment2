@@ -543,7 +543,7 @@ void execute_command(int commandID, string commandVal, nodeptr & chord, int n, l
 	switch(commandID){
 		// initchord
 		case 0:
-			InitChord(size, n, 0, chord);
+			InitChord(n, size, 0, chord);
 		break;
 		
 		// addpeer
