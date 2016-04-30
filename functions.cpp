@@ -4,7 +4,7 @@
 	Student#:		3284165
 	Subject:		CSCI319
 	Desc:			Assignment 2: Function implementations
-	Date:
+	Date:			April 2016
 
 */
 
@@ -44,7 +44,9 @@ void InitChord(int n, long int size, long int ID, nodeptr & chord){
 		cout << "3284165" << endl;
 		path = convertToString(chord->ID);
 		cout << path << ">" << path << endl;
-		fingerTable(chord, chord, ID, size);
+		if(chord->next != NULL){
+			fingerTable(chord, chord, ID, size);
+		}
 	}
 }
 

@@ -4,7 +4,7 @@
 	Student#:		3284165
 	Subject:		CSCI319
 	Desc:			Assignment 2: Function Header
-	Date:
+	Date:			April 2016
 
 */
 

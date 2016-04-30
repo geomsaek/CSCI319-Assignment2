@@ -4,7 +4,7 @@
 	Student#:		3284165
 	Subject:		CSCI319
 	Desc:			Assignment 2: Main File
-	Date:
+	Date:			April 2016
 
 */
 
@@ -22,21 +22,12 @@ int main(int argc, char *argv[]){
 	if(argc > 1){
 		string file = argv[1];
 		nodeptr chord = NULL;
-//		int n = 5;
-//		int size = pow(n);
 		int n = 0;
 		long int size = 0;
 	
 		if(file.length() > 0){
 			Read(file, chord, n, size);
 		}
-
-		outputChord(chord, n);
-
-//		nodeptr locate;
-//		bool test;
-// 		test = findPeer(chord, locate, n, 8);
- 		
 	}
 
 	return 0;
