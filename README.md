@@ -1,3 +1,26 @@
+----------------------------------------------------------------------------------------------------------------
+
+Notes:
+
+general compilation:
+
+g++ main.cpp functions.cpp
+
+----------------------------------------------------------------------------------------------------------------
+
+Instructions for compilation
+
+Command line accepts 1 parameter, the name of a data file containing a list of commands to execute
+
+usage:
+
+./a.out myfile.dat
+
+----------------------------------------------------------------------------------------------------------------
+
+
+/----------------------------------------- CSCI319 ASSIGNMENT 2 SPEC -----------------------------------------/
+
 The Chord system is a structured peer-to-peer network architecture realizing a scalable distributed hash table. In
 Chord, the peers are organized as a ring. A position within Chord which is held by a computing node is called an
 index node or simply a peer. Each index node has a finger table and, in addition, holds data items associated with
