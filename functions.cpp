@@ -61,52 +61,59 @@ void AddPeer(long int ID, int n, nodeptr & chord){
 	string path = "";
 	long int prev = 0;
 	
-	cout << "PEER " << ID << " ADDED" << endl;
-	
 	findPeer(chord, cur, n, ID, path, false);
-	cout << path << ">" << ID << endl;
-	if(ID > cur->ID){
+	
+	if(cur->ID != ID){
+	
+		cout << "PEER " << ID << " ADDED" << endl;
+		cout << path << ">" << ID << endl;
+		if(ID > cur->ID){
 		
-		if(cur->next != NULL){
-			pres = cur->next;
-			cur->next = tmp;
-			tmp->prev = cur;
-			tmp->next = pres;
+			if(cur->next != NULL){
+				pres = cur->next;
+				cur->next = tmp;
+				tmp->prev = cur;
+				tmp->next = pres;
+			}else {
+				cur->next = tmp;
+				tmp->prev = cur;
+				pres = cur->next;
+			}	
 		}else {
-			cur->next = tmp;
-			tmp->prev = cur;
-			pres = cur->next;
-		}	
-	}else {
-		pres = chord;
-		chord = tmp;
-		chord->next = pres;
-		pres->prev = chord;
-	}
+			pres = chord;
+			chord = tmp;
+			chord->next = pres;
+			pres->prev = chord;
+		}
 
-	fingerTable(pres, chord, ID, n);
-	checkAddedPeers(pres, chord);
+		fingerTable(pres, chord, ID, n);
+		checkAddedPeers(pres, chord);
+	}
 
 }
 
 /******* REMOVE PEER FUNCTION ********/
 void RemovePeer(long int ID, int n, nodeptr & chord){
 
-	cout << "PEER " << ID << " REMOVED" << endl;
+
 	nodeptr cur = chord;
 	nodeptr store, storeBack;
 	string path = "";
 
 	findPeer(chord, cur, n, ID, path, false);
-	cout << path << endl;
-	moveDeletedResource(cur, chord, n, false);
 	
-	if(cur->next != NULL){
-		deleteGreaterIndex(cur, storeBack, chord);
-		fingerTable(storeBack, chord, ID, n);	
-	}else {
-		deleteLesserIndex(cur, store);
-		fingerTable(store, chord, ID, n);
+	if(cur->ID == ID){
+		cout << "PEER " << ID << " REMOVED" << endl;
+		cout << path << endl;
+		moveDeletedResource(cur, chord, n, false);
+	
+		if(cur->next != NULL){
+			deleteGreaterIndex(cur, storeBack, chord);
+			fingerTable(storeBack, chord, ID, n);	
+		}else {
+			deleteLesserIndex(cur, store);
+			fingerTable(store, chord, ID, n);
+		}
 	}
 
 }
