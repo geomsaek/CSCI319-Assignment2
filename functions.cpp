@@ -52,7 +52,7 @@ void InitChord(int n, long int size, long int ID, nodeptr & chord){
 
 /******* ADD PEER FUNCTION ********/
 void AddPeer(long int ID, int n, nodeptr & chord){
-	
+
 	bool greater = false, ignore = false;
 	int counter = 0;
 	nodeptr tmp = createNode(ID, n);
@@ -85,7 +85,7 @@ void AddPeer(long int ID, int n, nodeptr & chord){
 			chord->next = pres;
 			pres->prev = chord;
 		}
-
+		
 		fingerTable(pres, chord, ID, n);
 		checkAddedPeers(pres, chord);
 	}
@@ -95,18 +95,18 @@ void AddPeer(long int ID, int n, nodeptr & chord){
 /******* REMOVE PEER FUNCTION ********/
 void RemovePeer(long int ID, int n, nodeptr & chord){
 
-
 	nodeptr cur = chord;
 	nodeptr store, storeBack;
 	string path = "";
+	bool found = false;
 
-	findPeer(chord, cur, n, ID, path, false);
+	found = findPeer(chord, cur, n, ID, path, false);
 	
-	if(cur->ID == ID){
+	if(found){
 		cout << "PEER " << ID << " REMOVED" << endl;
 		cout << path << endl;
 		moveDeletedResource(cur, chord, n, false);
-	
+		
 		if(cur->next != NULL){
 			deleteGreaterIndex(cur, storeBack, chord);
 			fingerTable(storeBack, chord, ID, n);	
@@ -114,6 +114,7 @@ void RemovePeer(long int ID, int n, nodeptr & chord){
 			deleteLesserIndex(cur, store);
 			fingerTable(store, chord, ID, n);
 		}
+
 	}
 
 }
@@ -222,47 +223,54 @@ void Delete(string hash, int n, nodeptr & chord){
 	
 	long int nodeID = FindKey(hash, n, chord);
 	long int hashid = Hash(hash,n);
+	bool found = false;
 	nodeptr pos;
 	string path = "";
 	
 	std::multimap<long int,string>::iterator it;
 	std::multimap<long int,string>::iterator temp;
 	
-	findPeer(chord, pos, n, nodeID, path, false);
+	found = findPeer(chord, pos, n, nodeID, path, false);
 	
-	for (it=pos->resource.begin(); it!=pos->resource.end();){
+	if(found && nodeID != -1){
+		for (it=pos->resource.begin(); it!=pos->resource.end();){
 
-		if(hashid == (*it).first){
-			temp = it;
-			++temp;
+			if(hashid == (*it).first){
+				temp = it;
+				++temp;
 
-			cout << "REMOVED " << (*it).second << "(key=" << (*it).first << ") FROM " << pos->ID << endl;
-			pos->resource.erase(it);
-			it = temp;
-		}else {
-			 ++it;
+				cout << "REMOVED " << (*it).second << "(key=" << (*it).first << ") FROM " << pos->ID << endl;
+				pos->resource.erase(it);
+				it = temp;
+			}else {
+				 ++it;
+			}
 		}
 	}
 }
 
 /******* PRINT FUNCTION ********/
 void Print(long int ID, int n, nodeptr & chord){
-	
+
 	long int hashid;
 	nodeptr pos;
 	string path = "";
+	bool found = false;
 
-	findPeer(chord, pos, n, ID, path, false);
+	found = findPeer(chord, pos, n, ID, path, false);
 	
-	cout << "DATA AT NODE " << ID << ":" << endl;
-	outputResources(pos);
-	cout << "FINGER TABLE OF NODE " << ID << endl;
+	if(found){
+	
+		cout << "DATA AT NODE " << ID << ":" << endl;
+		outputResources(pos);
+		cout << "FINGER TABLE OF NODE " << ID << endl;
 
-	for(int i = 0; i < n; i++){
-		cout << pos->fingertable[i] << " ";
+		for(int i = 0; i < n; i++){
+			cout << pos->fingertable[i] << " ";
+		}
+		cout << endl;
+		cout << path << endl;
 	}
-	cout << endl;
-	cout << path << endl;
 }
 
 /******* READ FUNCTION ********/
@@ -381,6 +389,7 @@ void moveDeletedResource(nodeptr & cur, nodeptr & chord, int n, bool addPeer){
 	long int prev = 0;
 	bool nextSearch = false;
 	bool resource = false;
+	bool found = false;
 	std::multimap<long int,string>::iterator it;
 
 	nodeptr search = NULL;
@@ -391,8 +400,10 @@ void moveDeletedResource(nodeptr & cur, nodeptr & chord, int n, bool addPeer){
 	
 		for (it=cur->resource.begin(); it!=cur->resource.end(); ++it){
 		
-			findPeer(chord, search, n, nextID, path, false);
-			search->resource.insert(pair<long int, string>((*it).first, (*it).second));
+			found = findPeer(chord, search, n, nextID, path, false);
+			if(found){
+				search->resource.insert(pair<long int, string>((*it).first, (*it).second));
+			}
 		}
 	}
 }
@@ -622,8 +633,11 @@ void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, int n){
 				while(innerLoop){
 
 					if(forward->ID >= fingerIndex){
-						backwardCur->fingertable[i] = forward->ID;
+
+ 						backwardCur->fingertable[i] = forward->ID;
+
 						find = true;
+						innerLoop = false;
 						break;
 					}
 
@@ -635,6 +649,7 @@ void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, int n){
 					}else {
 						forward = forward->next;
 					}
+
 				}
 			}else {
 				overflow = fingerIndex - chordsize;
@@ -652,11 +667,12 @@ void fingerTable(nodeptr & curNode, nodeptr & chord, long int ID, int n){
 			find = false;
 		}
 		
-		if(backwardCur->next == NULL){
+		if(backwardCur->next == NULL || backwardCur == NULL){
 			loop = false;
 		}else {
 			backwardCur = backwardCur->next;
 		}
+
 	}
 }
 
@@ -717,6 +733,7 @@ bool findPeer(nodeptr & chord, nodeptr & locate, int n, long int ID, string & pa
 	while(loop){
 
 		if(checkMissingNode(cur, ID)){
+
 			locate = cur;
 			if(endline){
 				outputID(cur->ID, initial);
@@ -780,7 +797,6 @@ bool findPeer(nodeptr & chord, nodeptr & locate, int n, long int ID, string & pa
 	if(endline){
 	 	cout << endl;
 	 }
- 	
  	return found;
 
 }
